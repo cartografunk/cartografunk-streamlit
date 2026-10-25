@@ -1,0 +1,4 @@
+nivel,filas_origen_plano,filas_publicadas,columnas_plano,columnas_planas_indicador,columna_clave,exclusiones_planas,indicadores_pob_desde_geo,indicadores_publicados,columnas_publicadas_por_clave,geoparquet_columnas_totales,geoparquet_columnas_leidas,choques_mitades_metropolitanas
+estatal,32,32,546,545,CVEGEO,,257,802,803,807,258,0
+municipal,2469,2469,546,545,CVEGEO,,257,802,803,808,258,0
+metropolitano,184,92,697,694,CVEGEO,nomgeo:poblacion__nombre; tipomet:poblacion__tipo_de_metropoli,108,802,803,960,258,0

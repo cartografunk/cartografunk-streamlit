@@ -1,0 +1,18 @@
+# Colores base de assets/css/styles.css; conservar las paletas de datos independientes.
+[theme]
+base = "dark"
+primaryColor = "#b44fff"
+backgroundColor = "#080810"
+secondaryBackgroundColor = "#12121f"
+textColor = "#f2eeff"
+linkColor = "#d070ff"
+borderColor = "#38204d"
+font = "'Noto Sans':https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap"
+headingFont = "Syne:https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap"
+
+[theme.sidebar]
+backgroundColor = "#0e0e1a"
+secondaryBackgroundColor = "#12121f"
+
+[server]
+enableStaticServing = true

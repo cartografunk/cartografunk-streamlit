@@ -1,0 +1,3 @@
+nivel,cvegeo,codigo,descripcion,valor_origen,archivo_origen
+municipal,29048,pob42_r,Porcentaje de población femenina,569.2,CPV/geoparquet/cpv2020_municipal.parquet
+municipal,29048,pob84_r,Porcentaje de población masculina,559.9,CPV/geoparquet/cpv2020_municipal.parquet

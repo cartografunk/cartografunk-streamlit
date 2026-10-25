@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+*.tmp
+*.temp
+*.log
+~$*
+.cache/
+.pytest_cache/
+.streamlit/secrets.toml
+!components/municipal_map/dist/
+!components/municipal_map/dist/municipal_map.js
