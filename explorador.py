@@ -758,8 +758,9 @@ def main() -> None:
         with compass_tab:
             render_compass()
     st.caption(
-        "Datos y geografía: INEGI, Censo de Población y Vivienda 2020 "
-        "(SCINCE) y Marco Geoestadístico. Paletas: ColorBrewer 2.0."
+        "Fuentes: Datos y geografía: Censo de Población y Vivienda INEGI "
+        "(2020) y Marco Geoestadístico Nacional INEGI (2025). "
+        "Paletas: ColorBrewer 2.0."
     )
 
 

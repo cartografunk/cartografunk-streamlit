@@ -50,4 +50,4 @@ git push -u origin main
 
 ## Atribuciones
 
-Datos y geografía: INEGI, Censo de Población y Vivienda 2020 (SCINCE) y Marco Geoestadístico. Paletas: ColorBrewer 2.0. Estas atribuciones también se muestran dentro de la app.
+Fuentes: Datos y geografía: Censo de Población y Vivienda INEGI (2020) y Marco Geoestadístico Nacional INEGI (2025). Paletas: ColorBrewer 2.0. Estas atribuciones también se muestran dentro de la app.
