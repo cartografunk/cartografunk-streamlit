@@ -1,6 +1,6 @@
 # Cartografunk · Explorador público
 
-Aplicación Streamlit para consultar indicadores del Censo 2020/SCINCE por estado, municipio y metrópoli. Incluye mapa, clasificación, tabla, descarga CSV y compass estatal. No utiliza Supabase ni login.
+Aplicación Streamlit para consultar indicadores del Censo 2020/SCINCE por estado, municipio y metrópoli. Incluye mapa, gráfica de barras o línea, clasificación, tabla, descarga CSV y compass estatal. No utiliza Supabase ni login.
 
 ## Filtro municipal
 

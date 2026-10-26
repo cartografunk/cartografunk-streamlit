@@ -32908,12 +32908,12 @@ function JL(e) {
 		stroked: !0,
 		getFillColor: e.getFillColor,
 		getLineColor: [
-			80,
-			88,
-			95,
-			150
+			255,
+			255,
+			255,
+			230
 		],
-		lineWidthMinPixels: .25,
+		lineWidthMinPixels: .75,
 		updateTriggers: { getFillColor: i }
 	});
 	e.deck.setProps({ layers: [a] });

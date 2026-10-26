@@ -389,17 +389,28 @@ def grouped_variables(selection: pd.DataFrame) -> pd.DataFrame:
     return catalog
 
 
+def code_sort_key(code: str) -> tuple[str, int, int]:
+    """Keep SCINCE codes in their published numeric sequence."""
+    match = re.fullmatch(r"([a-z]+)(\d+)(_r)?", code.casefold())
+    if match:
+        return match.group(1), int(match.group(2)), bool(match.group(3))
+    return code.casefold(), -1, 0
+
+
 def select_grouped_variable(selection: pd.DataFrame, suffix: str, preferred: str) -> pd.Series:
     catalog = grouped_variables(selection)
     preferred_group = (catalog.loc[catalog.codigo == preferred, "grupo"].iloc[0]
                        if preferred in catalog.codigo.values else None)
-    groups = sorted(catalog.grupo.unique().tolist(), key=str.casefold)
+    first_code = catalog.groupby("grupo")["codigo"].agg(
+        lambda codes: min(code_sort_key(code) for code in codes)
+    )
+    groups = sorted(first_code.index.tolist(), key=lambda group: (first_code[group], group.casefold()))
     group_label = "Grupo" if not suffix else f"Grupo · {suffix}"
     group = st.selectbox(group_label, groups,
                          index=groups.index(preferred_group) if preferred_group in groups else 0)
-    choices = catalog.loc[catalog.grupo == group].sort_values(
-        ["edad_inicio", "edad_fin", "orden_sexo", "descripcion", "codigo"]
-    ).copy()
+    choices = catalog.loc[catalog.grupo == group].copy()
+    choices["orden_codigo"] = choices.codigo.map(code_sort_key)
+    choices = choices.sort_values("orden_codigo")
     duplicate_details = choices.detalle.duplicated(keep=False)
     choices.loc[duplicate_details, "detalle"] = choices.loc[duplicate_details, "descripcion"]
     options = choices.codigo.tolist()
@@ -409,8 +420,10 @@ def select_grouped_variable(selection: pd.DataFrame, suffix: str, preferred: str
         variable_label += f" · {suffix}"
     code = st.selectbox(variable_label, options,
                         index=options.index(preferred) if preferred in options else 0,
-                        format_func=lambda candidate: labels[candidate])
-    return choices.loc[choices.codigo == code].iloc[0]
+                        format_func=lambda candidate: f"{candidate.upper()} · {labels[candidate]}")
+    selected = choices.loc[choices.codigo == code].iloc[0]
+    st.caption(f"Descripción del catálogo · {code.upper()}: {selected['descripcion']}")
+    return selected
 
 
 def render_map() -> None:
@@ -579,8 +592,8 @@ def render_map() -> None:
             layer = pdk.Layer(
                 "GeoJsonLayer", feature_collection, pickable=True, auto_highlight=True,
                 stroked=True, filled=True, get_fill_color="properties.fill",
-                get_line_color=[80, 88, 95, 150],
-                line_width_min_pixels=0.5 if level == "metropolitano" else 0.25,
+                get_line_color=[255, 255, 255, 230],
+                line_width_min_pixels=0.75,
             )
         with st.spinner("Dibujando mapa…", show_time=True):
             deck = CompactDeck(
@@ -620,6 +633,132 @@ def render_map() -> None:
             "Descargar CSV", shown.to_csv(index=False).encode("utf-8-sig"),
             file_name=f"cartografunk_{level}_{code}.csv", mime="text/csv",
         )
+
+
+def render_graph() -> None:
+    st.subheader("Gráfica")
+    with st.sidebar:
+        level_label = st.selectbox("Nivel", list(LEVELS), key="grafica_nivel")
+        level, _ = LEVELS[level_label]
+        state_code = None
+        selected_keys = []
+        if level == "municipal":
+            municipal_names = names(level)
+            states = municipal_names[["cve_ent", "nombre_ent"]].drop_duplicates().sort_values("nombre_ent")
+            state_options = {"Elige un estado": None}
+            state_options.update(dict(zip(states.nombre_ent, states.cve_ent)))
+            state_code = state_options[st.selectbox("Filtro por estado", list(state_options), key="grafica_estado")]
+            if state_code:
+                candidates = municipal_names.loc[municipal_names.cve_ent == state_code]
+                labels = dict(zip(candidates.cvegeo, candidates.nombre))
+                selected_keys = st.multiselect(
+                    "Buscar y marcar municipios", candidates.cvegeo.tolist(),
+                    format_func=lambda key: f"{labels[key]} · {key}",
+                    placeholder="Sin selección, todo el estado", key=f"grafica_municipios_{state_code}",
+                )
+        elif level == "metropolitano":
+            metro_names = names(level)
+            labels = dict(zip(metro_names.cvegeo, metro_names.nombre))
+            selected_keys = st.multiselect(
+                "Buscar y marcar metrópolis", metro_names.cvegeo.tolist(),
+                format_func=lambda key: f"{labels[key]} · {key}",
+                placeholder="Sin selección, las 92 zonas", key="grafica_metro",
+            )
+        catalog = variables()
+        topics = sorted(catalog.tema.dropna().unique().tolist())
+        topic = st.selectbox("Tema", topics, index=topics.index("Población"), key="grafica_tema")
+        value_type = st.selectbox(
+            "Tipo de valor", ["Absoluto", "Relativo", "Tasa por 100 mil habitantes"],
+            key="grafica_tipo",
+        )
+        search = st.text_input("Buscar variable", placeholder="Descripción", key="grafica_buscar")
+        source_type = "relativo" if value_type == "Relativo" else "absoluto"
+        selection = catalog.loc[(catalog.tema == topic) & (catalog.tipo == source_type)].copy()
+        if value_type == "Tasa por 100 mil habitantes":
+            selection = selection.loc[selection.codigo != "pob1"]
+        if search:
+            selection = selection.loc[selection.descripcion.str.contains(search, case=False, regex=False)]
+        if selection.empty:
+            st.info("Ninguna variable coincide con la búsqueda.")
+            return
+        preferred = {"Absoluto": "pob1", "Relativo": "pob2_r", "Tasa por 100 mil habitantes": "pob2"}[value_type]
+        variable = select_grouped_variable(selection, "", preferred)
+
+    if level == "municipal" and state_code is None:
+        st.info("Elige un estado para graficar sus municipios.")
+        return
+
+    left, middle, right = st.columns(3)
+    with left:
+        chart_type = st.selectbox("Tipo de gráfica", ["Barras", "Línea"])
+    with middle:
+        orientation = st.selectbox("Orientación", ["Vertical", "Horizontal"],
+                                   disabled=chart_type == "Línea")
+    with right:
+        sort_by = st.selectbox("Orden de unidades", ["Valor (mayor a menor)", "CVEGEO", "Nombre"])
+    limit = st.selectbox("Mostrar unidades", [20, 50, 100, "Todas"],
+                         index=1 if level == "municipal" else 3)
+
+    level_names = names(level)
+    if state_code:
+        level_names = level_names.loc[level_names.cve_ent == state_code]
+    if selected_keys:
+        level_names = level_names.loc[level_names.cvegeo.isin(selected_keys)]
+    with st.spinner("Preparando gráfica…", show_time=True):
+        values = (rate_per_100k(level, topic_file(topic), variable["codigo"])
+                  if value_type == "Tasa por 100 mil habitantes"
+                  else metric(level, topic_file(topic), variable["codigo"]))
+        frame = level_names.merge(values, on="cvegeo", how="left", validate="one_to_one")
+        frame = frame.loc[frame.valor.notna()].copy()
+    if frame.empty:
+        st.info("No hay valores para esta selección.")
+        return
+    if sort_by == "Valor (mayor a menor)":
+        frame = frame.sort_values(["valor", "cvegeo"], ascending=[False, True])
+    elif sort_by == "Nombre":
+        frame = frame.sort_values("nombre_completo")
+    else:
+        frame = frame.sort_values("cvegeo")
+    if limit != "Todas":
+        frame = frame.head(limit)
+
+    label = compass_label(variable, value_type)
+    frame["descripcion_catalogo"] = variable["descripcion"]
+    if chart_type == "Barras" and orientation == "Horizontal":
+        fig = px.bar(frame, x="valor", y="nombre_completo", orientation="h",
+                     custom_data=["cvegeo", "descripcion_catalogo"],
+                     labels={"valor": label, "nombre_completo": level_label})
+        fig.update_yaxes(categoryorder="array", categoryarray=frame.nombre_completo.iloc[::-1].tolist())
+        value_axis = "x"
+    elif chart_type == "Barras":
+        fig = px.bar(frame, x="nombre_completo", y="valor",
+                     custom_data=["cvegeo", "descripcion_catalogo"],
+                     labels={"valor": label, "nombre_completo": level_label})
+        value_axis = "y"
+    else:
+        fig = px.line(frame, x="nombre_completo", y="valor", markers=True,
+                      custom_data=["cvegeo", "descripcion_catalogo"],
+                      labels={"valor": label, "nombre_completo": level_label})
+        value_axis = "y"
+        st.caption("La línea conecta unidades geográficas en el orden elegido; no representa una serie temporal.")
+    fig.update_traces(
+        hovertemplate=f"<b>%{{customdata[0]}}</b><br>%{{customdata[1]}}<br>{label}: "
+                      f"%{{{value_axis}:,.2f}}<extra></extra>"
+    )
+    fig.update_layout(height=max(450, min(1200, 30 * len(frame) + 120))
+                      if orientation == "Horizontal" and chart_type == "Barras" else 520,
+                      margin={"l": 25, "r": 25, "t": 30, "b": 80})
+    if not (chart_type == "Barras" and orientation == "Horizontal"):
+        fig.update_xaxes(tickangle=-45)
+    st.plotly_chart(fig, width="stretch", key="grafica_univariable")
+    st.caption(f"{len(frame):,} unidades con valor · {variable['codigo'].upper()} · {variable['descripcion']}")
+    with st.expander("Datos de la gráfica"):
+        shown = frame[["cvegeo", "nombre_completo", "valor"]].rename(
+            columns={"nombre_completo": "nombre", "valor": label})
+        st.dataframe(shown, hide_index=True, width="stretch")
+        st.download_button("Descargar CSV", shown.to_csv(index=False).encode("utf-8-sig"),
+                           file_name=f"cartografunk_grafica_{level}_{variable['codigo']}.csv",
+                           mime="text/csv")
 
 
 def compass_axis(axis: str, catalog: pd.DataFrame, default_code: str) -> tuple[pd.Series, str]:
@@ -750,10 +889,13 @@ def main() -> None:
     )
     st.markdown("<style>.block-container{padding-top:1.25rem}</style>", unsafe_allow_html=True)
     st.title("Haz tu propio mapa")
-    map_tab, compass_tab = st.tabs(["Mapa", "Compass"], on_change="rerun")
+    map_tab, graph_tab, compass_tab = st.tabs(["Mapa", "Gráfica", "Compass"], on_change="rerun")
     if map_tab.open:
         with map_tab:
             render_map()
+    if graph_tab.open:
+        with graph_tab:
+            render_graph()
     if compass_tab.open:
         with compass_tab:
             render_compass()
