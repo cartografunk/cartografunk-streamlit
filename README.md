@@ -1,6 +1,10 @@
 # Cartografunk · Explorador público
 
-Aplicación Streamlit para consultar indicadores del Censo 2020/SCINCE, registros del fuero común del SESNSP (2015–2025) y producción agrícola, pecuaria y pesquera de SIACON. Incluye mapa, gráfica, tabla, descarga CSV y compass estatal. No utiliza Supabase ni login.
+Aplicación Streamlit para consultar indicadores del Censo 2020/SCINCE, registros del fuero común del SESNSP (2015–2025), producción agrícola, pecuaria y pesquera de SIACON y Defunciones Registradas del INEGI (2012–2024). Incluye mapa, gráfica, tabla, descarga CSV y compass estatal. No utiliza Supabase ni login.
+
+## Fuente EDR
+
+En **Fuente → Defunciones registradas · INEGI** se exploran los años de registro 2012–2024 según la residencia habitual de la persona fallecida. El mapa ofrece entidad y municipio, filtro por capítulo CIE o grupo de la Lista Mexicana, sexo y edad agrupada. La gráfica presenta conteos anuales; Compass compara dos grupos de causas entre estados. Las tasas de 2020–2024 usan `POB1` del CPV 2020 como denominador fijo y están etiquetadas así; no son tasas ajustadas por edad. En los conteos estatales entran los registros con municipio de residencia desconocido; siete claves municipales históricas sin geometría actual quedan en los Parquet pero no se dibujan. El consolidado individual de 271 MB **no se publica**: `data/edr/` contiene solo agregados anuales y catálogos. El manifiesto documenta procedencia, tamaños y SHA-256.
 
 ## Fuente SIACON
 
@@ -20,7 +24,7 @@ En **Fuente → Delitos · SESNSP**, el mapa muestra incidencia estatal o munici
 
 ## Archivos
 
-`data/publico/` contiene las tablas del Censo por nivel y tema. `data/crimen_sesnsp/` contiene los Parquet SESNSP por fuente y año, la dimensión de delitos, el catálogo de procedencia y el manifiesto. `data/siacon/` contiene los cinco cierres anuales, sus catálogos y el manifiesto. `data/geometria/` contiene únicamente copias de visualización. `data/dim_*.parquet` guarda las dimensiones geográficas y del Censo. `data/agrupacion_excepciones.csv` es la configuración de dos agrupaciones de variables. `static/municipal_visual_1000m.json` es la geometría estática que el componente municipal carga una vez. `components/municipal_map/dist/municipal_map.js` es el front-end ya compilado; no hace falta npm en el servidor. `assets/img/favicon.webp` es el icono de la app.
+`data/publico/` contiene las tablas del Censo por nivel y tema. `data/crimen_sesnsp/` contiene los Parquet SESNSP por fuente y año, la dimensión de delitos, el catálogo de procedencia y el manifiesto. `data/siacon/` contiene los cinco cierres anuales, sus catálogos y el manifiesto. `data/edr/` contiene solo conteos agregados anuales, catálogos y manifiesto. `data/geometria/` contiene únicamente copias de visualización. `data/dim_*.parquet` guarda las dimensiones geográficas y del Censo. `data/agrupacion_excepciones.csv` es la configuración de dos agrupaciones de variables. `static/municipal_visual_1000m.json` es la geometría estática que el componente municipal carga una vez. `components/municipal_map/dist/municipal_map.js` es el front-end ya compilado; no hace falta npm en el servidor. `assets/img/favicon.webp` es el icono de la app.
 
 ## Ejecución local
 
@@ -58,4 +62,4 @@ git push -u origin main
 
 ## Atribuciones
 
-Fuentes: Censo de Población y Vivienda INEGI (2020), Marco Geoestadístico Nacional INEGI (2025), incidencia delictiva y víctimas del fuero común SESNSP (descarga con corte de septiembre de 2026), producción agrícola, pecuaria y pesquera SIACON (copia local con datos hasta 2024; pesca hasta 2018). Paletas: ColorBrewer 2.0. Estas atribuciones también se muestran dentro de la app.
+Fuentes: Censo de Población y Vivienda INEGI (2020), Marco Geoestadístico Nacional INEGI (2025), incidencia delictiva y víctimas del fuero común SESNSP (descarga con corte de septiembre de 2026), producción agrícola, pecuaria y pesquera SIACON (copia local con datos hasta 2024; pesca hasta 2018), Defunciones Registradas INEGI (2012–2024). Paletas: ColorBrewer 2.0. Estas atribuciones también se muestran dentro de la app.

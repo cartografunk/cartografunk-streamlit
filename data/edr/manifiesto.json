@@ -1,0 +1,198 @@
+{
+  "fuente": "INEGI, Estadísticas de Defunciones Registradas",
+  "archivo_fuente": "EDR_Consolidado_2012_2024.parquet",
+  "sha256_fuente": "3bc26dda60972dd7b8f3ca60010f682d3de1cecb4c8b63aaabc4035ae470b6c5",
+  "anio": "año de registro",
+  "geografia": "residencia habitual",
+  "registros_fuente": 10050739,
+  "registros_estatal": 9945024,
+  "registros_municipal": 9930019,
+  "archivos": [
+    {
+      "archivo": "catalogos/dim_capitulo.parquet",
+      "bytes": 1614,
+      "sha256": "fcb055a31e270d29027facf9f51e823a9d6b0f1c80f7169eb38a2c61607e4835",
+      "filas": 19
+    },
+    {
+      "archivo": "catalogos/dim_causa_detalle.parquet",
+      "bytes": 153637,
+      "sha256": "c1d85f13f1d116d6fef175176072124b4f07c928648af1b717c6683c76f8e634",
+      "filas": 10073
+    },
+    {
+      "archivo": "catalogos/dim_edad_agrupada.parquet",
+      "bytes": 1049,
+      "sha256": "22fb929fed2e8a59b28bef85bea5a7b7e28d0b3f3f2e9d5002f69d7b93657bc2",
+      "filas": 30
+    },
+    {
+      "archivo": "catalogos/dim_grupo_causa.parquet",
+      "bytes": 2431,
+      "sha256": "dc8230ed483ebdc58103c7287dcb36747c7368a0390f99fd0adb6bb17e5198e8",
+      "filas": 59
+    },
+    {
+      "archivo": "catalogos/dim_sexo.parquet",
+      "bytes": 756,
+      "sha256": "cdb34e964b73a0075bcaa8878566dac7253a77c6fe07453caab11a3bdf231c8b",
+      "filas": 3
+    },
+    {
+      "archivo": "estatal/anio=2012/data_0.parquet",
+      "bytes": 133581,
+      "sha256": "cce6f870123377083dcb1b03a3fcc08cd4a1e7501731b0888ae57c21d6b7609e",
+      "filas": 41255
+    },
+    {
+      "archivo": "estatal/anio=2013/data_0.parquet",
+      "bytes": 134248,
+      "sha256": "4c637866bcb7cf7f87eb6fcd65b5583489a36297d6c4c678e34e150ee6e03b45",
+      "filas": 41325
+    },
+    {
+      "archivo": "estatal/anio=2014/data_0.parquet",
+      "bytes": 134908,
+      "sha256": "35fb4d4e12bccfc84b106ab8b3cd72a882a046253e6d8d89b9ee3b63926bfe25",
+      "filas": 40927
+    },
+    {
+      "archivo": "estatal/anio=2015/data_0.parquet",
+      "bytes": 136160,
+      "sha256": "dfdb224ba74f4621c3ad19701f1458d129303fdfa0f9d0655882e3cca6e31db4",
+      "filas": 40954
+    },
+    {
+      "archivo": "estatal/anio=2016/data_0.parquet",
+      "bytes": 133654,
+      "sha256": "90b70796b5ecb74dccc7077092d23b7c7cbeaf98ed03b6c7247f386a7f6fe990",
+      "filas": 40891
+    },
+    {
+      "archivo": "estatal/anio=2017/data_0.parquet",
+      "bytes": 137688,
+      "sha256": "82d9dd26e2822f755b4b0c9f0e34fa178d579864fdbd31c2c1249d96c43b0ca8",
+      "filas": 40546
+    },
+    {
+      "archivo": "estatal/anio=2018/data_0.parquet",
+      "bytes": 133946,
+      "sha256": "66d43ba8c0e493ec8f973ff0ad0307722fc3864e08afa73ea62fe95f016bc1ad",
+      "filas": 40307
+    },
+    {
+      "archivo": "estatal/anio=2019/data_0.parquet",
+      "bytes": 136967,
+      "sha256": "7dbe16ac887bfe502b2a9a052699081977b98406a838699d536d26f64ed2ed70",
+      "filas": 40760
+    },
+    {
+      "archivo": "estatal/anio=2020/data_0.parquet",
+      "bytes": 141552,
+      "sha256": "6e689b07fb26e38a25c653bfd2688a0df7f3e3db8431ba7f7330e1bc47662001",
+      "filas": 41765
+    },
+    {
+      "archivo": "estatal/anio=2021/data_0.parquet",
+      "bytes": 143965,
+      "sha256": "4e8c913ee5b787ab40ed19fcdb1c01cc16599bc2af455544d68d758f11f2a4fa",
+      "filas": 42074
+    },
+    {
+      "archivo": "estatal/anio=2022/data_0.parquet",
+      "bytes": 143105,
+      "sha256": "6e0845ef987e7d79acc3cc3881b284e39b463937841c04826f93195a057a88c6",
+      "filas": 42494
+    },
+    {
+      "archivo": "estatal/anio=2023/data_0.parquet",
+      "bytes": 140696,
+      "sha256": "2938eeb34dc54c6361e36f6050f8e2ec31ee359184990e9489149ca79ba63d39",
+      "filas": 41885
+    },
+    {
+      "archivo": "estatal/anio=2024/data_0.parquet",
+      "bytes": 141269,
+      "sha256": "c5ec224f080ca1e802107442f6cb49bd78213b03cf68a8f9f1f1ac3f75abf735",
+      "filas": 41849
+    },
+    {
+      "archivo": "municipal/anio=2012/data_0.parquet",
+      "bytes": 1050713,
+      "sha256": "7aed49c832d238d6b85df6678bea4b1a1da4814363827a5392e9e7b90b5a0f8f",
+      "filas": 270741
+    },
+    {
+      "archivo": "municipal/anio=2013/data_0.parquet",
+      "bytes": 1068514,
+      "sha256": "42dfbdeb0c3473751d5ccd1aa5ca2ffed97a01bdd812f1fe1a95c234e43cfa18",
+      "filas": 276261
+    },
+    {
+      "archivo": "municipal/anio=2014/data_0.parquet",
+      "bytes": 1080704,
+      "sha256": "16e6ae914272f01653581863cb6cb87ce47e087a3eea99232c497864e767cc92",
+      "filas": 277746
+    },
+    {
+      "archivo": "municipal/anio=2015/data_0.parquet",
+      "bytes": 1107340,
+      "sha256": "5ee9322c6190ce5af681282aff8c7443a09940897c3dbf94abc13e677c6eea1a",
+      "filas": 282336
+    },
+    {
+      "archivo": "municipal/anio=2016/data_0.parquet",
+      "bytes": 1123534,
+      "sha256": "197185934bdeb8d483cf405cc58e9b7bdf37cc4abefb3f2000884cb19f063dda",
+      "filas": 285996
+    },
+    {
+      "archivo": "municipal/anio=2017/data_0.parquet",
+      "bytes": 1116438,
+      "sha256": "c82ea1bc7037d0537a4e1978f90f04413cb946f7c515f724915c8b16e7b1cde7",
+      "filas": 286793
+    },
+    {
+      "archivo": "municipal/anio=2018/data_0.parquet",
+      "bytes": 1122980,
+      "sha256": "da5fd2c6d6001e97d266e2a3a4b3bd2f51cf4812fa50be63e9f4cefc26269ac6",
+      "filas": 284860
+    },
+    {
+      "archivo": "municipal/anio=2019/data_0.parquet",
+      "bytes": 1162787,
+      "sha256": "7f2917568c440b6d561712fd0d7d1606204fc224707aa44ea97398b34e48cc7e",
+      "filas": 294972
+    },
+    {
+      "archivo": "municipal/anio=2020/data_0.parquet",
+      "bytes": 1296708,
+      "sha256": "820eb887489ac6a7dab14787b1649b14979bf81c5bc5ad5747372b1a32c4bbee",
+      "filas": 333012
+    },
+    {
+      "archivo": "municipal/anio=2021/data_0.parquet",
+      "bytes": 1366415,
+      "sha256": "525f3fa20cccc0c51fbd065851eef98a0fff29c38fa529dda21dd2d37fd86a3f",
+      "filas": 350443
+    },
+    {
+      "archivo": "municipal/anio=2022/data_0.parquet",
+      "bytes": 1246980,
+      "sha256": "069eed48f24ffbc321dda3de13365af17c155cd9bfbd23645388b7b0745e3035",
+      "filas": 318757
+    },
+    {
+      "archivo": "municipal/anio=2023/data_0.parquet",
+      "bytes": 1216645,
+      "sha256": "3673112a5df612caa619b625a8efaefb79a781fc2d5899c889d96483babe3e20",
+      "filas": 306079
+    },
+    {
+      "archivo": "municipal/anio=2024/data_0.parquet",
+      "bytes": 1228471,
+      "sha256": "e590a198096482f290d5f5b3159f711d71914d5c74e5c5963ee7276399234aa4",
+      "filas": 310688
+    }
+  ]
+}

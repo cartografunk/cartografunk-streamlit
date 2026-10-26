@@ -1678,6 +1678,295 @@ def render_siacon_compass() -> None:
                  hide_index=True, width="stretch")
 
 
+EDR_RATE = "Tasa por 100 mil (CPV 2020)"
+
+
+@st.cache_data(show_spinner=False)
+def edr_catalog(table: str) -> pd.DataFrame:
+    if table not in {"dim_capitulo", "dim_grupo_causa", "dim_edad_agrupada"}:
+        raise ValueError("Catálogo EDR desconocido")
+    return pd.read_parquet(DATA / "edr" / "catalogos" / f"{table}.parquet")
+
+
+def edr_cause_picker(suffix: str, *, default_mode: str = "Todas las causas",
+                     default_code: str | None = None) -> tuple[str, str | int | None, str]:
+    modes = ["Todas las causas", "Capítulo CIE", "Grupo Lista Mexicana"]
+    mode = st.selectbox("Causas", modes, index=modes.index(default_mode),
+                        key=f"edr_{suffix}_causas")
+    if mode == "Todas las causas":
+        return "todas", None, "Todas las causas"
+    if mode == "Capítulo CIE":
+        catalog = edr_catalog("dim_capitulo")
+        labels = dict(zip(catalog.cap.astype(int), catalog.descripcion))
+        code = st.selectbox("Capítulo", sorted(labels),
+                            format_func=lambda key: f"{key} · {labels[key]}",
+                            key=f"edr_{suffix}_capitulo")
+        return "capitulo", int(code), labels[code]
+    catalog = edr_catalog("dim_grupo_causa")
+    labels = dict(zip(catalog.cve, catalog.descripcion))
+    codes = sorted(labels)
+    code = st.selectbox("Grupo de causas", codes,
+                        format_func=lambda key: f"{key} · {labels[key]}",
+                        index=codes.index(default_code) if default_code in codes else 0,
+                        key=f"edr_{suffix}_grupo")
+    return "grupo", code, labels[code]
+
+
+@st.cache_data(show_spinner=False)
+def edr_annual(level: str, mode: str, code: str | int | None,
+               sex: int | None, age: int | None) -> pd.DataFrame:
+    if level not in {"estatal", "municipal"}:
+        raise ValueError("Nivel EDR desconocido")
+    conditions, params = [], [str(DATA / "edr" / level / "anio=*" / "*.parquet")]
+    if mode == "capitulo":
+        conditions.append("capitulo = ?")
+        params.append(int(code))
+    elif mode == "grupo":
+        conditions.append("grupo_causa = ?")
+        params.append(str(code))
+    elif mode != "todas":
+        raise ValueError("Agrupación EDR desconocida")
+    if sex is not None:
+        conditions.append("sexo = ?")
+        params.append(sex)
+    if age is not None:
+        conditions.append("edad_agru = ?")
+        params.append(age)
+    where = " WHERE " + " AND ".join(conditions) if conditions else ""
+    cursor = duckdb_connection().cursor()
+    try:
+        return cursor.execute(f"""
+            SELECT cvegeo, anio, sum(defunciones)::BIGINT AS valor
+            FROM read_parquet(?, hive_partitioning=true) {where}
+            GROUP BY cvegeo, anio ORDER BY cvegeo, anio
+        """, params).df()
+    finally:
+        cursor.close()
+
+
+def edr_picker(suffix: str, *, series: bool = False, compass: bool = False) -> dict:
+    level_label = st.selectbox("Nivel", ["Estado"] if compass else ["Estado", "Municipio"],
+                               key=f"edr_{suffix}_nivel")
+    level = LEVELS[level_label][0]
+    mode, code, label = edr_cause_picker(suffix)
+    sex_label = st.selectbox("Sexo", ["Todos", "Hombres", "Mujeres"],
+                             key=f"edr_{suffix}_sexo")
+    sex = {"Todos": None, "Hombres": 1, "Mujeres": 2}[sex_label]
+    ages = edr_catalog("dim_edad_agrupada")
+    age_labels = {int(row.cve): row.descripcion for row in ages.itertuples(index=False)}
+    age = st.selectbox("Edad", [None, *sorted(age_labels)],
+                       format_func=lambda key: age_labels.get(key, "Todas las edades"),
+                       key=f"edr_{suffix}_edad")
+    measures = ["Defunciones"]
+    if sex is None and age is None:
+        measures.append(EDR_RATE)
+    measure = ("Defunciones" if compass else
+               st.selectbox("Medida", measures, key=f"edr_{suffix}_medida"))
+    first_year = 2020 if measure == EDR_RATE else 2012
+    if compass:
+        first = last = st.select_slider("Año", options=list(range(2012, 2025)),
+                                        value=2024, key=f"edr_{suffix}_anio")
+    else:
+        first, last = st.slider("Años de registro", first_year, 2024,
+                                (first_year, 2024) if series else (2024, 2024),
+                                key=f"edr_{suffix}_anios_{first_year}")
+    return dict(level=level, mode=mode, code=code, label=label, sex=sex, age=age,
+                measure=measure, first=first, last=last)
+
+
+def edr_values(choice: dict) -> pd.DataFrame:
+    coverage = edr_annual(choice["level"], "todas", None, None, None)
+    coverage = coverage.loc[coverage.anio.between(choice["first"], choice["last"]),
+                            ["cvegeo"]].drop_duplicates()
+    annual = edr_annual(choice["level"], choice["mode"], choice["code"],
+                        choice["sex"], choice["age"])
+    annual = annual.loc[annual.anio.between(choice["first"], choice["last"])]
+    values = annual.groupby("cvegeo", as_index=False).valor.sum()
+    values = coverage.merge(values, on="cvegeo", how="left", validate="one_to_one")
+    values["valor"] = values.valor.fillna(0)
+    if choice["measure"] == EDR_RATE:
+        population = crime_population(choice["level"])
+        values = values.merge(population, on="cvegeo", how="left")
+        values["valor"] = values.valor.div(
+            values.poblacion_cpv2020.where(values.poblacion_cpv2020 > 0)
+        ).div(choice["last"] - choice["first"] + 1).mul(100_000)
+        values = values[["cvegeo", "valor"]]
+    return values
+
+
+def render_edr_map() -> None:
+    with st.sidebar:
+        choice = edr_picker("mapa")
+        level = choice["level"]
+        state = crime_state_picker("edr_mapa") if level == "municipal" else None
+        chosen = []
+        if state:
+            candidates = names("municipal").loc[lambda frame: frame.cve_ent == state]
+            labels = dict(zip(candidates.cvegeo, candidates.nombre))
+            chosen = st.multiselect("Buscar y marcar municipios", candidates.cvegeo.tolist(),
+                                    format_func=lambda key: f"{labels[key]} · {key}",
+                                    key=f"edr_mapa_municipios_{state}")
+        method = st.selectbox("Método de clasificación", CLASSIFICATION_METHODS,
+                              key="edr_mapa_metodo")
+        palette = st.selectbox("Paleta ColorBrewer", list(PALETTES), key="edr_mapa_paleta")
+    if level == "municipal" and not state:
+        st.info("Elige un estado para mostrar sus municipios.")
+        return
+    with st.spinner("Consultando defunciones y preparando mapa…", show_time=True):
+        frame = names(level).merge(edr_values(choice), on="cvegeo", how="left",
+                                   validate="one_to_one")
+        if state:
+            frame = frame.loc[frame.cve_ent == state]
+        if chosen:
+            frame = frame.loc[frame.cvegeo.isin(chosen)]
+        unit = "por_100k" if choice["measure"] == EDR_RATE else "conteo"
+        if level == "municipal" and os.getenv("CARTOGRAFUNK_MUNICIPAL_MAP", "deck").lower() != "pydeck":
+            colors, bands = classify(frame.set_index("cvegeo").valor, palette, method)
+            rows = [{"key": row.cvegeo, "color": colors[row.cvegeo],
+                     "name": row.nombre_completo, "value": format_value(row.valor, unit)}
+                    for row in frame.itertuples(index=False)]
+            use_component = True
+        else:
+            shapes = geometry(level)
+            if state:
+                shapes = [(key, geom) for key, geom in shapes if key.startswith(state)]
+            if chosen:
+                shapes = [(key, geom) for key, geom in shapes if key in chosen]
+            feature_collection, bands = map_features(shapes, frame, palette, unit, method)
+            use_component = False
+    st.subheader(f"{choice['label']} · {choice['first']}" +
+                 (f"–{choice['last']}" if choice["last"] != choice["first"] else ""))
+    st.caption("INEGI · Defunciones Registradas · residencia habitual · año de registro. "
+               + ("Tasa anual promedio con población fija CPV 2020." if unit == "por_100k"
+                  else "Conteo de defunciones registradas."))
+    if use_component:
+        MUNICIPAL_MAP(data={
+            "geometryUrl": "app/static/municipal_visual_1000m.json", "rows": rows,
+            "stateCode": state, "selectedKeys": chosen,
+            "revision": f"edr:{choice}:{method}:{palette}:{state}:{','.join(chosen)}",
+            "debug": False,
+        }, key="edr_municipal_map")
+    else:
+        layer = pdk.Layer("GeoJsonLayer", feature_collection, pickable=True,
+                          auto_highlight=True, stroked=True, filled=True,
+                          get_fill_color="properties.fill", get_line_color=[255, 255, 255, 230],
+                          line_width_min_pixels=0.75)
+        deck = CompactDeck(layers=[layer], initial_view_state=pdk.ViewState(
+            latitude=24, longitude=-102.5, zoom=2.8, pitch=0),
+            tooltip={"html": "<b>{nombre}</b><br>{cvegeo}<br>{valor}"}, map_style=None)
+        st.pydeck_chart(deck, width="stretch", height=400, key="edr_mapa")
+    legend(bands, unit, "Sin datos EDR")
+    if level == "municipal":
+        st.caption("Siete claves municipales históricas (421 defunciones en 2012–2024) "
+                   "no tienen geometría actual. Los casos sin municipio identificado "
+                   "sí cuentan en el total estatal y no en el mapa municipal.")
+    shown = frame[["cvegeo", "nombre_completo", "valor"]].rename(
+        columns={"nombre_completo": "nombre", "valor": choice["measure"]})
+    st.dataframe(shown, hide_index=True, width="stretch")
+    st.download_button("Descargar CSV", shown.to_csv(index=False).encode("utf-8-sig"),
+                       file_name=f"cartografunk_edr_{level}_{choice['first']}_{choice['last']}.csv",
+                       mime="text/csv", key="edr_mapa_descarga")
+
+
+def render_edr_graph() -> None:
+    st.subheader("Evolución histórica")
+    with st.sidebar:
+        choice = edr_picker("grafica", series=True)
+        state = crime_state_picker("edr_grafica")
+        chosen = []
+        if state and choice["level"] == "municipal":
+            candidates = names("municipal").loc[lambda frame: frame.cve_ent == state]
+            labels = dict(zip(candidates.cvegeo, candidates.nombre))
+            chosen = st.multiselect("Buscar y marcar municipios", candidates.cvegeo.tolist(),
+                                    format_func=lambda key: f"{labels[key]} · {key}",
+                                    placeholder="Sin selección, total estatal",
+                                    key=f"edr_grafica_municipios_{state}")
+    if not state:
+        st.info("Elige un estado para ver su evolución histórica.")
+        return
+    level = "municipal" if chosen else "estatal"
+    annual = edr_annual(level, choice["mode"], choice["code"], choice["sex"], choice["age"])
+    keys = chosen if chosen else [state]
+    annual = annual.loc[annual.cvegeo.isin(keys) &
+                        annual.anio.between(choice["first"], choice["last"])]
+    coverage = edr_annual(level, "todas", None, None, None)
+    coverage = coverage.loc[coverage.cvegeo.isin(keys) &
+                            coverage.anio.between(choice["first"], choice["last"]),
+                            ["anio"]].drop_duplicates()
+    frame = coverage.merge(annual.groupby("anio", as_index=False).valor.sum(),
+                           on="anio", how="left", validate="one_to_one")
+    frame["valor"] = frame.valor.fillna(0)
+    if frame.empty:
+        st.info("No hay registros para esta selección.")
+        return
+    if choice["measure"] == EDR_RATE:
+        population = crime_population(level)
+        selected = population.loc[population.cvegeo.isin(keys), "poblacion_cpv2020"]
+        denominator = selected.sum() if len(selected) == len(keys) and selected.notna().all() else np.nan
+        frame["valor"] = frame.valor.div(denominator if denominator > 0 else np.nan).mul(100_000)
+    st.caption(f"INEGI · Defunciones Registradas · {choice['label']} · "
+               "año de registro, residencia habitual. " +
+               ("Tasa por 100 mil con población fija CPV 2020." if choice["measure"] == EDR_RATE
+                else "Conteo anual."))
+    fig = px.line(frame, x="anio", y="valor", markers=True,
+                  labels={"anio": "Año de registro", "valor": choice["measure"]})
+    fig.update_traces(hovertemplate="%{x}<br>%{y:,.2f}<extra></extra>")
+    st.plotly_chart(fig, width="stretch", key="edr_serie")
+    st.dataframe(frame, hide_index=True, width="stretch")
+    st.download_button("Descargar CSV", frame.to_csv(index=False).encode("utf-8-sig"),
+                       file_name="cartografunk_edr_serie.csv", mime="text/csv")
+
+
+def render_edr_compass() -> None:
+    st.subheader("Compass · estados")
+    with st.sidebar:
+        st.markdown("**Eje X**")
+        x_mode, x_code, x_label = edr_cause_picker(
+            "compass_x", default_mode="Grupo Lista Mexicana", default_code="28")
+        st.markdown("**Eje Y**")
+        y_mode, y_code, y_label = edr_cause_picker(
+            "compass_y", default_mode="Grupo Lista Mexicana", default_code="E55")
+        measure = st.selectbox("Medida", [EDR_RATE, "Defunciones"], key="edr_compass_medida")
+        years = list(range(2020 if measure == EDR_RATE else 2012, 2025))
+        year = st.select_slider("Año de registro", options=years, value=2024,
+                                key=f"edr_compass_anio_{years[0]}")
+    x_all = edr_annual("estatal", x_mode, x_code, None, None)
+    y_all = edr_annual("estatal", y_mode, y_code, None, None)
+    frame = names("estatal")[["cvegeo", "nombre", "abreviatura"]]
+    frame = frame.merge(x_all.loc[x_all.anio == year, ["cvegeo", "valor"]].rename(
+        columns={"valor": "x"}), on="cvegeo", how="left")
+    frame = frame.merge(y_all.loc[y_all.anio == year, ["cvegeo", "valor"]].rename(
+        columns={"valor": "y"}), on="cvegeo", how="left")
+    frame[["x", "y"]] = frame[["x", "y"]].fillna(0)
+    if measure == EDR_RATE:
+        population = crime_population("estatal").set_index("cvegeo").poblacion_cpv2020
+        denominator = frame.cvegeo.map(population).where(lambda values: values > 0)
+        frame["x"] = frame.x.div(denominator).mul(100_000)
+        frame["y"] = frame.y.div(denominator).mul(100_000)
+        frame = frame.dropna(subset=["x", "y"])
+    if frame.empty:
+        st.info("No hay estados con valores para ambos ejes.")
+        return
+    x_cut, y_cut = frame.x.median(), frame.y.median()
+    frame["cuadrante"] = np.select([
+        (frame.x >= x_cut) & (frame.y >= y_cut),
+        (frame.x < x_cut) & (frame.y >= y_cut),
+        (frame.x < x_cut) & (frame.y < y_cut)],
+        ["Alto · Alto", "Bajo · Alto", "Bajo · Bajo"], default="Alto · Bajo")
+    fig = px.scatter(frame, x="x", y="y", text="abreviatura", hover_name="nombre",
+                     color="cuadrante", labels={"x": x_label, "y": y_label})
+    fig.add_vline(x=x_cut, line_dash="dash", line_color="#888")
+    fig.add_hline(y=y_cut, line_dash="dash", line_color="#888")
+    fig.update_traces(textposition="top center")
+    st.caption(f"INEGI · Defunciones Registradas · {year} · residencia habitual. "
+               "Cortes: medianas de los estados con datos. " +
+               ("Tasas por 100 mil con población fija CPV 2020." if measure == EDR_RATE
+                else "Conteos de defunciones registradas."))
+    st.plotly_chart(fig, width="stretch", key="edr_compass")
+    st.dataframe(frame[["cvegeo", "nombre", "x", "y", "cuadrante"]],
+                 hide_index=True, width="stretch")
+
+
 def main() -> None:
     st.set_page_config(
         page_title="Haz tu propio mapa · Cartografunk",
@@ -1689,21 +1978,25 @@ def main() -> None:
     st.title("Haz tu propio mapa")
     with st.sidebar:
         source = st.selectbox("Fuente", ["Censo 2020 · INEGI", "Delitos · SESNSP",
-                                         "Producción agropecuaria y pesquera · SIACON"],
+                                         "Producción agropecuaria y pesquera · SIACON",
+                                         "Defunciones registradas · INEGI"],
                               key="cartografunk_fuente")
     map_tab, graph_tab, compass_tab = st.tabs(["Mapa", "Gráfica", "Compass"], on_change="rerun")
     if map_tab.open:
         with map_tab:
             (render_crime_map() if source == "Delitos · SESNSP" else
-             render_siacon_map() if source.startswith("Producción agropecuaria") else render_map())
+             render_siacon_map() if source.startswith("Producción agropecuaria") else
+             render_edr_map() if source.startswith("Defunciones registradas") else render_map())
     if graph_tab.open:
         with graph_tab:
             (render_crime_graph() if source == "Delitos · SESNSP" else
-             render_siacon_graph() if source.startswith("Producción agropecuaria") else render_graph())
+             render_siacon_graph() if source.startswith("Producción agropecuaria") else
+             render_edr_graph() if source.startswith("Defunciones registradas") else render_graph())
     if compass_tab.open:
         with compass_tab:
             (render_crime_compass() if source == "Delitos · SESNSP" else
-             render_siacon_compass() if source.startswith("Producción agropecuaria") else render_compass())
+             render_siacon_compass() if source.startswith("Producción agropecuaria") else
+             render_edr_compass() if source.startswith("Defunciones registradas") else render_compass())
     st.caption(
         "Fuentes: Datos y geografía: Censo de Población y Vivienda INEGI "
         "(2020) y Marco Geoestadístico Nacional INEGI (2025). "
@@ -1711,6 +2004,7 @@ def main() -> None:
         "(registro 2015–2025, descarga con corte de septiembre de 2026). "
         "Producción agrícola, pecuaria y pesquera: SIACON, copia local con datos hasta 2024 "
         "(pesca hasta 2018). "
+        "Defunciones Registradas: INEGI (2012–2024, año de registro y residencia habitual). "
         "Paletas: ColorBrewer 2.0."
     )
 
