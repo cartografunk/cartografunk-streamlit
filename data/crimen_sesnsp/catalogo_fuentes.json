@@ -1,0 +1,113 @@
+{
+  "metodologia": "Nueva metodología SESNSP, fuero común",
+  "diccionario": "DD_SESNSP_Metodología_Actual.xlsx",
+  "sha256_diccionario": "4d690c127733912d9ab44c8dbf1a8b76eba19d0fc21fa31ffd1832070f171130",
+  "periodo": "2015-01 a 2025-12",
+  "fuentes": [
+    {
+      "fuente": "fuero_comun_estatal",
+      "archivo_zip": "Estatal-Delitos-2015-2025_sep2026.zip",
+      "miembro_csv": "Estatal-Delitos-2015-2025_sep2026.csv",
+      "sha256_zip": "f7af11b436ab8cdb6f7312a03c7488d79f72588a3a94d35f9289911d7f7269ee",
+      "filas_origen_por_anio": {
+        "2015": 3136,
+        "2016": 3136,
+        "2017": 3136,
+        "2018": 3136,
+        "2019": 3136,
+        "2020": 3136,
+        "2021": 3136,
+        "2022": 3136,
+        "2023": 3136,
+        "2024": 3136,
+        "2025": 3136
+      },
+      "filas_parquet_por_anio": {
+        "2015": 37632,
+        "2016": 37632,
+        "2017": 37632,
+        "2018": 37632,
+        "2019": 37632,
+        "2020": 37632,
+        "2021": 37632,
+        "2022": 37632,
+        "2023": 37632,
+        "2024": 37632,
+        "2025": 37632
+      },
+      "conteos_nulos_por_anio": {},
+      "conteos_negativos_por_anio": {},
+      "geografias": 32
+    },
+    {
+      "fuente": "victimas_estatal",
+      "archivo_zip": "Estatal-Víctimas-2015-2025_sep2026.zip",
+      "miembro_csv": "Estatal-Víctimas-2015-2025_sep2026.csv",
+      "sha256_zip": "e910fc5cbe1f95fe530780873bea28e68ba513a3a90b07a7d6daf75f7f1a2abc",
+      "filas_origen_por_anio": {
+        "2015": 7360,
+        "2016": 7360,
+        "2017": 7360,
+        "2018": 7360,
+        "2019": 7360,
+        "2020": 7360,
+        "2021": 7360,
+        "2022": 7360,
+        "2023": 7360,
+        "2024": 7360,
+        "2025": 7360
+      },
+      "filas_parquet_por_anio": {
+        "2015": 88320,
+        "2016": 88320,
+        "2017": 88320,
+        "2018": 88320,
+        "2019": 88320,
+        "2020": 88320,
+        "2021": 88320,
+        "2022": 88320,
+        "2023": 88320,
+        "2024": 88320,
+        "2025": 88320
+      },
+      "conteos_nulos_por_anio": {},
+      "conteos_negativos_por_anio": {},
+      "geografias": 32
+    },
+    {
+      "fuente": "fuero_comun_municipal",
+      "archivo_zip": "Municipal-Delitos-2015-2025_sep2026.zip",
+      "miembro_csv": "Municipal-Delitos - (2015-2025) dic25_corte_sep26.csv",
+      "sha256_zip": "ae8561a42e5595dd518c59cd0d115aba0adcc95b72a10cadbc4fa383a9723a86",
+      "filas_origen_por_anio": {
+        "2015": 189238,
+        "2016": 189238,
+        "2017": 241668,
+        "2018": 242158,
+        "2019": 242158,
+        "2020": 242158,
+        "2021": 242844,
+        "2022": 242942,
+        "2023": 243334,
+        "2024": 243628,
+        "2025": 243628
+      },
+      "filas_parquet_por_anio": {
+        "2015": 2270856,
+        "2016": 2270856,
+        "2017": 2900016,
+        "2018": 2905896,
+        "2019": 2905896,
+        "2020": 2905896,
+        "2021": 2914128,
+        "2022": 2915304,
+        "2023": 2920008,
+        "2024": 2923536,
+        "2025": 2923536
+      },
+      "conteos_nulos_por_anio": {},
+      "conteos_negativos_por_anio": {},
+      "geografias": 2486
+    }
+  ]
+}

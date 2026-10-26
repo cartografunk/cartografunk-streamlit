@@ -73,6 +73,113 @@ def duckdb_connection() -> duckdb.DuckDBPyConnection:
     return duckdb.connect(":memory:")
 
 
+CRIME_KINDS = {
+    "Incidencia delictiva": "fuero_comun_estatal",
+    "Víctimas": "victimas_estatal",
+}
+CRIME_YEARS = list(range(2015, 2026))
+CRIME_RATE = "Tasa por 100 mil (CPV 2020)"
+
+
+@st.cache_data(show_spinner=False)
+def crime_catalog() -> pd.DataFrame:
+    return pd.read_parquet(DATA / "crimen_sesnsp" / "dim_delito.parquet")
+
+
+def crime_path(kind: str) -> str:
+    if kind not in ("fuero_comun_estatal", "fuero_comun_municipal", "victimas_estatal"):
+        raise ValueError("Fuente SESNSP desconocida")
+    return str(DATA / "crimen_sesnsp" / kind / "anio=*" / "*.parquet")
+
+
+@st.cache_data(show_spinner=False)
+def crime_population(level: str) -> pd.DataFrame:
+    if level not in ("estatal", "municipal"):
+        raise ValueError("Nivel sin denominador CPV 2020")
+    frame = pd.read_parquet(DATA / "publico" / level / "poblacion.parquet",
+                            columns=["cvegeo", "pob1"])
+    return frame.rename(columns={"pob1": "poblacion_cpv2020"})
+
+
+def crime_conditions(kind: str, sexo: str, edad: str) -> tuple[str, list[str]]:
+    clauses = []
+    params = []
+    if kind == "victimas_estatal":
+        if sexo != "Todos":
+            clauses.append("sexo = ?")
+            params.append(sexo)
+        if edad != "Todas":
+            clauses.append("grupo_edad = ?")
+            params.append(edad)
+    return (" AND " + " AND ".join(clauses) if clauses else ""), params
+
+
+@st.cache_data(show_spinner=False)
+def crime_counts(kind: str, code: str, first: int, last: int,
+                 sexo: str = "Todos", edad: str = "Todas") -> pd.DataFrame:
+    extra, params = crime_conditions(kind, sexo, edad)
+    cursor = duckdb_connection().cursor()
+    try:
+        return cursor.execute(f"""
+            SELECT cvegeo, cve_ent,
+                   CASE WHEN count(*) FILTER (WHERE conteo IS NULL OR conteo < 0) > 0
+                        THEN NULL ELSE sum(conteo) END AS valor
+            FROM read_parquet(?, hive_partitioning=true)
+            WHERE codigo_delito = ? AND anio BETWEEN ? AND ? {extra}
+            GROUP BY cvegeo, cve_ent ORDER BY cvegeo
+        """, [crime_path(kind), code, first, last, *params]).df()
+    finally:
+        cursor.close()
+
+
+@st.cache_data(show_spinner=False)
+def crime_values(kind: str, code: str, first: int, last: int,
+                 measure: str, sexo: str = "Todos", edad: str = "Todas") -> pd.DataFrame:
+    current = crime_counts(kind, code, first, last, sexo, edad)
+    if measure == "Conteo":
+        return current
+    if measure == CRIME_RATE:
+        if kind == "victimas_estatal" and (sexo != "Todos" or edad != "Todas"):
+            raise ValueError("La tasa de víctimas requiere todos los sexos y edades")
+        level = "municipal" if kind == "fuero_comun_municipal" else "estatal"
+        frame = current.merge(crime_population(level), on="cvegeo", how="left",
+                              validate="one_to_one")
+        denominator = frame.poblacion_cpv2020.where(frame.poblacion_cpv2020 > 0)
+        frame["valor"] = frame.valor.div(denominator).div(last - first + 1).mul(100_000)
+        return frame[["cvegeo", "cve_ent", "valor"]]
+    if measure == "% del historial 2015–2025":
+        history = crime_counts(kind, code, 2015, 2025, sexo, edad)
+        frame = current.merge(history[["cvegeo", "valor"]].rename(columns={"valor": "denominador"}),
+                              on="cvegeo", validate="one_to_one")
+    elif measure == "% del estado" and kind == "fuero_comun_municipal":
+        state = crime_counts("fuero_comun_estatal", code, first, last)
+        frame = current.merge(state[["cve_ent", "valor"]].rename(columns={"valor": "denominador"}),
+                              on="cve_ent", validate="many_to_one")
+    else:
+        raise ValueError("Medida SESNSP no disponible para esta fuente")
+    frame["valor"] = frame["valor"].div(frame["denominador"].where(frame["denominador"] > 0)).mul(100)
+    return frame[["cvegeo", "cve_ent", "valor"]]
+
+
+@st.cache_data(show_spinner=False)
+def crime_series(kind: str, code: str, state: str, keys: tuple[str, ...],
+                 sexo: str = "Todos", edad: str = "Todas") -> pd.DataFrame:
+    extra, params = crime_conditions(kind, sexo, edad)
+    filter_keys = " AND cvegeo IN (" + ",".join("?" for _ in keys) + ")" if keys else ""
+    cursor = duckdb_connection().cursor()
+    try:
+        return cursor.execute(f"""
+            SELECT periodo,
+                   CASE WHEN count(*) FILTER (WHERE conteo IS NULL OR conteo < 0) > 0
+                        THEN NULL ELSE sum(conteo) END AS conteo
+            FROM read_parquet(?, hive_partitioning=true)
+            WHERE codigo_delito = ? AND cve_ent = ? {filter_keys} {extra}
+            GROUP BY periodo ORDER BY periodo
+        """, [crime_path(kind), code, state, *keys, *params]).df()
+    finally:
+        cursor.close()
+
+
 @st.cache_data(show_spinner=False)
 def variables() -> pd.DataFrame:
     return pd.read_parquet(DATA / "dim_variable.parquet")
@@ -244,7 +351,7 @@ def classify(values: pd.Series, palette: str, method: str = CLASSIFICATION_METHO
 
 def format_value(value: float | int | None, unit: str) -> str:
     if value is None or pd.isna(value):
-        return "Sin datos CPV"
+        return "Sin datos"
     if unit == "porcentaje":
         return f"{value:,.2f} %"
     if unit == "por_100k":
@@ -880,6 +987,361 @@ def render_compass() -> None:
                            file_name="cartografunk_compass_estados.csv", mime="text/csv")
 
 
+def crime_picker(suffix: str, kind: str) -> tuple[str, str]:
+    catalog = crime_catalog()
+    flag = "en_victimas" if kind == "victimas_estatal" else "en_fuero_comun"
+    catalog = catalog.loc[catalog[flag]].copy()
+    labels = {row.codigo_delito: f"{row.tipo} · {row.subtipo} · {row.modalidad}"
+              for row in catalog.itertuples(index=False)}
+    if suffix == "compass_y":
+        preferred = catalog.loc[catalog.tipo.str.contains("Extorsión", case=False,
+                                                           regex=False), "codigo_delito"]
+    else:
+        preferred = catalog.loc[
+            catalog.subtipo.str.contains("Homicidio doloso", case=False, regex=False) &
+            catalog.modalidad.str.contains("arma de fuego", case=False, regex=False),
+            "codigo_delito",
+        ]
+    options = catalog.codigo_delito.tolist()
+    code = st.selectbox("Delito", options,
+                        index=options.index(preferred.iloc[0]) if not preferred.empty else 0,
+                        format_func=lambda key: labels[key], key=f"sesnsp_{suffix}_delito")
+    return code, labels[code]
+
+
+@st.cache_data(show_spinner=False)
+def crime_victim_strata() -> list[tuple[str, str]]:
+    cursor = duckdb_connection().cursor()
+    try:
+        rows = cursor.execute("""
+            SELECT DISTINCT sexo, grupo_edad FROM read_parquet(?, hive_partitioning=true)
+            ORDER BY sexo, grupo_edad
+        """, [crime_path("victimas_estatal")]).fetchall()
+        return rows
+    finally:
+        cursor.close()
+
+
+def crime_strata(kind: str, suffix: str) -> tuple[str, str]:
+    if kind != "victimas_estatal":
+        return "Todos", "Todas"
+    pairs = crime_victim_strata()
+    sex = st.selectbox("Sexo", ["Todos", *sorted({row[0] for row in pairs})],
+                       key=f"sesnsp_{suffix}_sexo")
+    ages = sorted({row[1] for row in pairs if sex == "Todos" or row[0] == sex})
+    age = st.selectbox("Edad", ["Todas", *ages], key=f"sesnsp_{suffix}_edad")
+    return sex, age
+
+
+def crime_state_picker(suffix: str) -> str | None:
+    states = names("estatal").sort_values("nombre")
+    labels = dict(zip(states.cvegeo, states.nombre))
+    code = st.selectbox("Filtro por estado", ["", *states.cvegeo.tolist()],
+                        format_func=lambda key: labels.get(key, "Elige un estado"),
+                        key=f"sesnsp_{suffix}_estado")
+    return code or None
+
+
+def render_crime_map() -> None:
+    with st.sidebar:
+        source_label = st.selectbox("Registro", list(CRIME_KINDS), key="sesnsp_mapa_fuente")
+        kind = CRIME_KINDS[source_label]
+        level_label = st.selectbox("Nivel", ["Estado"] if kind == "victimas_estatal"
+                                   else ["Estado", "Municipio"], key="sesnsp_mapa_nivel")
+        level = LEVELS[level_label][0]
+        state = crime_state_picker("mapa") if level == "municipal" else None
+        chosen = []
+        if state:
+            candidates = names("municipal").loc[lambda frame: frame.cve_ent == state]
+            labels = dict(zip(candidates.cvegeo, candidates.nombre))
+            chosen = st.multiselect("Buscar y marcar municipios", candidates.cvegeo.tolist(),
+                                    format_func=lambda key: f"{labels[key]} · {key}",
+                                    placeholder="Sin selección, todo el estado",
+                                    key=f"sesnsp_mapa_municipios_{state}")
+        code, label = crime_picker("mapa", kind)
+        sex, age = crime_strata(kind, "mapa")
+        choices = ["Conteo", "% del historial 2015–2025"]
+        if kind != "victimas_estatal" or (sex == "Todos" and age == "Todas"):
+            choices.insert(1, CRIME_RATE)
+        if level == "municipal":
+            choices.insert(1, "% del estado")
+        measure = st.selectbox("Medida", choices, key="sesnsp_mapa_medida")
+        first, last = st.slider("Años", 2020 if measure == CRIME_RATE else 2015,
+                                2025, (2025, 2025), key="sesnsp_mapa_anios")
+        method = st.selectbox("Método de clasificación", CLASSIFICATION_METHODS,
+                              key="sesnsp_mapa_metodo")
+        palette = st.selectbox("Paleta ColorBrewer", list(PALETTES),
+                               key="sesnsp_mapa_paleta")
+    if level == "municipal" and not state:
+        st.info("Elige un estado para mostrar sus municipios.")
+        return
+    with st.spinner("Consultando SESNSP y preparando mapa…", show_time=True):
+        source_kind = "fuero_comun_municipal" if level == "municipal" else kind
+        values = crime_values(source_kind, code, first, last, measure, sex, age)
+        frame = names(level).merge(values[["cvegeo", "valor"]], on="cvegeo", how="left",
+                                   validate="one_to_one")
+        if state:
+            frame = frame.loc[frame.cve_ent == state]
+        if chosen:
+            frame = frame.loc[frame.cvegeo.isin(chosen)]
+        unit = "porcentaje" if measure.startswith("%") else "por_100k" if measure == CRIME_RATE else "conteo"
+        if level == "municipal" and os.getenv("CARTOGRAFUNK_MUNICIPAL_MAP", "deck").lower() != "pydeck":
+            colors, bands = classify(frame.set_index("cvegeo").valor, palette, method)
+            rows = [{"key": row.cvegeo, "color": colors[row.cvegeo],
+                     "name": row.nombre_completo,
+                     "value": format_value(row.valor, unit) +
+                     (" por 100 mil habitantes CPV 2020" if unit == "por_100k" and pd.notna(row.valor) else "")}
+                    for row in frame.itertuples(index=False)]
+            use_component = True
+        else:
+            shapes = geometry(level)
+            if state:
+                shapes = [(key, geom) for key, geom in shapes if key.startswith(state)]
+            if chosen:
+                selected = set(chosen)
+                shapes = [(key, geom) for key, geom in shapes if key in selected]
+            feature_collection, bands = map_features(shapes, frame, palette, unit, method)
+            use_component = False
+    st.subheader(f"{label} · {first}" + (f"–{last}" if last != first else ""))
+    st.caption(f"SESNSP · {source_label} · {level_label} · {measure}. "
+               "Año de registro de la averiguación o carpeta de investigación.")
+    if use_component:
+        MUNICIPAL_MAP(data={
+            "geometryUrl": "app/static/municipal_visual_1000m.json", "rows": rows,
+            "stateCode": state, "selectedKeys": chosen,
+            "revision": f"sesnsp:{source_kind}:{code}:{first}:{last}:{measure}:{method}:{palette}:{state}:{','.join(chosen)}",
+            "debug": False,
+        }, key="sesnsp_municipal_map")
+    else:
+        layer = pdk.Layer("GeoJsonLayer", feature_collection, pickable=True,
+                          auto_highlight=True, stroked=True, filled=True,
+                          get_fill_color="properties.fill", get_line_color=[255, 255, 255, 230],
+                          line_width_min_pixels=0.75)
+        deck = CompactDeck(layers=[layer], initial_view_state=pdk.ViewState(
+            latitude=24, longitude=-102.5, zoom=2.8, pitch=0),
+            tooltip={"html": "<b>{nombre}</b><br>{cvegeo}<br>{valor}"}, map_style=None)
+        st.pydeck_chart(deck, width="stretch", height=400, key="sesnsp_mapa")
+    legend(bands, unit)
+    if level == "municipal":
+        st.caption("Las claves municipales sin geometría en el Marco no se dibujan; "
+                   "el denominador de % del estado procede del archivo estatal completo.")
+    if measure == CRIME_RATE:
+        st.caption("Casos ÷ POB1 del CPV 2020 × 100,000"
+                   + (f" ÷ {last - first + 1} años (promedio anual)." if last > first else ".")
+                   + " Denominador fijo de 2020: no refleja cambios de población posteriores.")
+        if level == "municipal":
+            st.caption("POB1 disponible para 2,469 de 2,486 claves municipales SESNSP; "
+                       "dos municipios con geometría y sin dato CPV se muestran en gris, "
+                       "y 15 claves sin geometría no se dibujan.")
+    shown = frame[["cvegeo", "nombre_completo", "valor"]].rename(
+        columns={"nombre_completo": "nombre", "valor": measure})
+    st.dataframe(shown, hide_index=True, width="stretch")
+    st.download_button("Descargar CSV", shown.to_csv(index=False).encode("utf-8-sig"),
+                       file_name=f"cartografunk_sesnsp_{level}_{code}_{first}_{last}.csv",
+                       mime="text/csv", key="sesnsp_mapa_descarga")
+
+
+def render_crime_graph() -> None:
+    st.subheader("Evolución histórica")
+    with st.sidebar:
+        source_label = st.selectbox("Registro", list(CRIME_KINDS), key="sesnsp_grafica_fuente")
+        kind = CRIME_KINDS[source_label]
+        level_label = st.selectbox("Nivel", ["Estado"] if kind == "victimas_estatal"
+                                   else ["Estado", "Municipio"], key="sesnsp_grafica_nivel")
+        state = crime_state_picker("grafica")
+        chosen = []
+        if state and level_label == "Municipio":
+            candidates = names("municipal").loc[lambda frame: frame.cve_ent == state]
+            labels = dict(zip(candidates.cvegeo, candidates.nombre))
+            chosen = st.multiselect("Buscar y marcar municipios", candidates.cvegeo.tolist(),
+                                    format_func=lambda key: f"{labels[key]} · {key}",
+                                    placeholder="Sin selección, el total estatal oficial",
+                                    key=f"sesnsp_grafica_municipios_{state}")
+        code, label = crime_picker("grafica", kind)
+        sex, age = crime_strata(kind, "grafica")
+        measures = ["Conteo"]
+        if kind != "victimas_estatal" or (sex == "Todos" and age == "Todas"):
+            measures.append(CRIME_RATE)
+        measure = st.selectbox("Medida", measures, key="sesnsp_grafica_medida")
+        first, last = st.slider("Años visibles", 2020 if measure == CRIME_RATE else 2015,
+                                2025, (2020, 2025) if measure == CRIME_RATE else (2015, 2025),
+                                key=f"sesnsp_grafica_anios_{'tasa' if measure == CRIME_RATE else 'conteo'}")
+        frequency = st.radio("Frecuencia", ["Mensual", "Anual"], horizontal=True,
+                             key="sesnsp_grafica_frecuencia")
+        rolling = st.checkbox("Acumulado móvil de 12 meses", value=False,
+                              disabled=frequency == "Anual", key="sesnsp_grafica_rolling")
+    if not state:
+        st.info("Elige un estado para ver su evolución histórica.")
+        return
+    series_kind = "fuero_comun_municipal" if chosen else kind
+    with st.spinner("Consultando la serie histórica…", show_time=True):
+        frame = crime_series(series_kind, code, state, tuple(chosen), sex, age)
+    if frame.empty:
+        st.info("No hay registros para esta selección.")
+        return
+    frame["fecha"] = pd.to_datetime(frame.periodo + "-01")
+    if frequency == "Anual":
+        frame["año"] = frame.fecha.dt.year
+        frame = frame.groupby("año", as_index=False).agg(
+            conteo=("conteo", lambda values: values.sum() if values.notna().all() and len(values) == 12 else np.nan))
+        frame["fecha"] = pd.to_datetime(frame["año"].astype(str) + "-01-01")
+    elif rolling:
+        frame["conteo"] = frame.conteo.rolling(12, min_periods=12).sum()
+    if measure == CRIME_RATE:
+        if chosen:
+            population = crime_population("municipal").loc[lambda table: table.cvegeo.isin(chosen)]
+            denominator = (float(population.poblacion_cpv2020.sum())
+                           if len(population) == len(chosen) and
+                           population.poblacion_cpv2020.notna().all() else np.nan)
+        else:
+            population = crime_population("estatal").set_index("cvegeo")
+            denominator = float(population.loc[state, "poblacion_cpv2020"])
+        frame["conteo"] = frame.conteo.div(denominator if denominator > 0 else np.nan).mul(100_000)
+    frame = frame.loc[frame.fecha.dt.year.between(first, last)]
+    place = (", ".join(names("municipal").set_index("cvegeo").loc[chosen, "nombre"].tolist())
+             if chosen else names("estatal").set_index("cvegeo").loc[state, "nombre"])
+    rate_note = ("Tasa anual por 100 mil habitantes CPV 2020."
+                 if frequency == "Anual" else
+                 "Tasa de los últimos 12 meses por 100 mil habitantes CPV 2020."
+                 if rolling else "Tasa mensual por 100 mil habitantes CPV 2020.")
+    st.caption(f"{source_label} · {place} · {label} · {first}–{last}. "
+               "Mes/año de registro. " +
+               (rate_note + " La población de 2020 permanece fija."
+                if measure == CRIME_RATE else "Conteos registrados."))
+    value_label = ("Tasa por 100 mil · CPV 2020" if measure == CRIME_RATE
+                   else "Conteo acumulado 12 meses" if rolling and frequency == "Mensual"
+                   else "Conteo")
+    fig = px.line(frame, x="fecha", y="conteo", markers=frequency == "Anual",
+                  labels={"fecha": "Periodo", "conteo": value_label})
+    fig.update_traces(hovertemplate="%{x|%Y-%m}<br>%{y:,.2f}<extra></extra>" if measure == CRIME_RATE
+                      else "%{x|%Y-%m}<br>%{y:,.0f}<extra></extra>")
+    fig.update_layout(height=500, margin={"l": 25, "r": 20, "t": 20, "b": 45})
+    st.plotly_chart(fig, width="stretch", key="sesnsp_serie")
+    st.dataframe(frame, hide_index=True, width="stretch")
+    st.download_button("Descargar CSV", frame.to_csv(index=False).encode("utf-8-sig"),
+                       file_name=f"cartografunk_sesnsp_serie_{code}.csv", mime="text/csv")
+
+
+@st.cache_data(show_spinner=False)
+def crime_annual(kind: str, code: str, sexo: str, edad: str) -> pd.DataFrame:
+    extra, params = crime_conditions(kind, sexo, edad)
+    cursor = duckdb_connection().cursor()
+    try:
+        return cursor.execute(f"""
+            SELECT cvegeo, anio,
+                   CASE WHEN count(*) FILTER (WHERE conteo IS NULL OR conteo < 0) > 0
+                        THEN NULL ELSE sum(conteo) END AS valor
+            FROM read_parquet(?, hive_partitioning=true)
+            WHERE codigo_delito = ? {extra}
+            GROUP BY cvegeo, anio ORDER BY cvegeo, anio
+        """, [crime_path(kind), code, *params]).df()
+    finally:
+        cursor.close()
+
+
+def render_crime_compass() -> None:
+    st.subheader("Compass · estados")
+    with st.sidebar:
+        source_label = st.selectbox("Registro", list(CRIME_KINDS), key="sesnsp_compass_fuente")
+        kind = CRIME_KINDS[source_label]
+        st.markdown("**Eje X**")
+        x_source = st.selectbox("Fuente · X", ["Censo 2020 · INEGI", "Delitos · SESNSP"],
+                                key="sesnsp_compass_x_fuente")
+        if x_source == "Censo 2020 · INEGI":
+            cpv_catalog = variables()
+            topics = sorted(cpv_catalog.tema.dropna().unique().tolist())
+            topic = st.selectbox("Tema · X", topics,
+                                 index=topics.index("Población"), key="sesnsp_compass_x_tema")
+            x_type = st.selectbox("Tipo de valor · X", ["Relativo", "Absoluto"],
+                                  key="sesnsp_compass_x_tipo")
+            search = st.text_input("Buscar variable · X", key="sesnsp_compass_x_buscar")
+            selection = cpv_catalog.loc[
+                (cpv_catalog.tema == topic) &
+                (cpv_catalog.tipo == ("relativo" if x_type == "Relativo" else "absoluto"))
+            ]
+            if search:
+                selection = selection.loc[selection.descripcion.str.contains(search, case=False,
+                                                                             regex=False)]
+            if selection.empty:
+                st.info("No hay indicadores censales para el eje X con esos filtros.")
+                return
+            x_variable = select_grouped_variable(selection, "CPV X", "pob132_r")
+            x_label = compass_label(x_variable, x_type) + " · CPV 2020"
+        else:
+            x_code, x_label = crime_picker("compass_x", kind)
+        st.markdown("**Eje Y**")
+        y_code, y_label = crime_picker("compass_y", kind)
+        sex, age = crime_strata(kind, "compass")
+        measures = ["Conteo", "% del historial 2015–2025"]
+        if kind != "victimas_estatal" or (sex == "Todos" and age == "Todas"):
+            measures.insert(1, CRIME_RATE)
+        measure = st.selectbox("Medida SESNSP", measures,
+                               key="sesnsp_compass_medida")
+        year_options = CRIME_YEARS[5:] if measure == CRIME_RATE or x_source == "Censo 2020 · INEGI" else CRIME_YEARS
+        year = st.select_slider("Año", options=year_options, value=2025,
+                                key=f"sesnsp_compass_anio_{year_options[0]}")
+    y_all = crime_annual(kind, y_code, sex, age)
+    x_all = crime_annual(kind, x_code, sex, age) if x_source == "Delitos · SESNSP" else None
+    if measure == CRIME_RATE:
+        population = crime_population("estatal").set_index("cvegeo").poblacion_cpv2020
+        for all_years in ([x_all, y_all] if x_all is not None else [y_all]):
+            all_years["valor"] = all_years.valor.div(all_years.cvegeo.map(population)).mul(100_000)
+    elif measure != "Conteo":
+        for all_years in ([x_all, y_all] if x_all is not None else [y_all]):
+            totals = all_years.groupby("cvegeo").valor.transform(
+                lambda values: values.sum() if values.notna().all() and len(values) == 11 else np.nan)
+            all_years["valor"] = all_years.valor.div(totals.where(totals > 0)).mul(100)
+    reference_start = 2020 if measure == CRIME_RATE or x_all is None else 2015
+    y_reference = y_all.loc[y_all.anio >= reference_start]
+    x_reference_years = x_all.loc[x_all.anio >= reference_start] if x_all is not None else None
+    x_current = (x_all.loc[x_all.anio == year, ["cvegeo", "valor"]]
+                 if x_all is not None else
+                 metric("estatal", topic_file(x_variable["tema"]), x_variable["codigo"]))
+    x_cut = float((x_reference_years if x_all is not None else x_current).valor.median())
+    y_cut = float(y_reference.valor.median())
+    frame = names("estatal")[["cvegeo", "nombre", "abreviatura"]]
+    frame = frame.merge(x_current.rename(columns={"valor": "x"}),
+                        on="cvegeo", how="left", validate="one_to_one")
+    frame = frame.merge(y_all.loc[y_all.anio == year, ["cvegeo", "valor"]].rename(columns={"valor": "y"}),
+                        on="cvegeo", how="left", validate="one_to_one")
+    frame = frame.dropna(subset=["x", "y"])
+    if frame.empty:
+        st.info("No hay estados con valores para ambos ejes.")
+        return
+    frame["cuadrante"] = np.select([
+        (frame.x >= x_cut) & (frame.y >= y_cut),
+        (frame.x >= x_cut) & (frame.y < y_cut),
+        (frame.x < x_cut) & (frame.y >= y_cut),
+    ], ["↑ X · ↑ Y", "↑ X · ↓ Y", "↓ X · ↑ Y"], default="↓ X · ↓ Y")
+    colors = {"↑ X · ↑ Y": "#ef4444", "↑ X · ↓ Y": "#f59e0b",
+              "↓ X · ↑ Y": "#3b82f6", "↓ X · ↓ Y": "#14b8a6"}
+    fig = px.scatter(frame, x="x", y="y", color="cuadrante", text="abreviatura",
+                     hover_name="nombre", hover_data={"cvegeo": True, "x": ":,.2f", "y": ":,.2f"},
+                     labels={"x": x_label if x_all is None else f"{x_label} · {measure}",
+                             "y": f"{y_label} · {measure}"},
+                     color_discrete_map=colors)
+    fig.update_traces(marker={"size": 11, "line": {"width": 1, "color": "white"}},
+                      textfont={"size": 10}, cliponaxis=False)
+    positions = compass_text_positions(frame)
+    for trace in fig.data:
+        trace.textposition = [positions[label] for label in trace.text]
+    fig.add_vline(x=x_cut, line_dash="dash", line_color="#9ca3af")
+    fig.add_hline(y=y_cut, line_dash="dash", line_color="#9ca3af")
+    x_reference = x_reference_years if x_all is not None else x_current
+    fig.update_xaxes(range=[min(0, float(x_reference.valor.min()) * 0.95),
+                            max(float(x_reference.valor.max()) * 1.05, 1)])
+    fig.update_yaxes(range=[0, max(float(y_reference.valor.max()) * 1.05, 1)])
+    fig.update_layout(height=620, margin={"l": 25, "r": 20, "t": 30, "b": 45})
+    st.plotly_chart(fig, width="stretch", key="sesnsp_compass")
+    st.caption(f"{year} · {source_label}. Cortes fijos: X {x_cut:,.2f}; Y {y_cut:,.2f}. "
+               + ("X es el valor fijo del Censo 2020; solo cambia Y al mover el año. "
+                  if x_all is None else f"Ambos cortes proceden de los 32 estados × {2026-reference_start} años. ")
+               + ("Tasa por 100 mil con población fija del CPV 2020."
+                  if measure == CRIME_RATE else "La medida SESNSP no es una tasa poblacional."))
+    st.dataframe(frame[["cvegeo", "nombre", "x", "y", "cuadrante"]],
+                 hide_index=True, width="stretch")
+
+
 def main() -> None:
     st.set_page_config(
         page_title="Haz tu propio mapa · Cartografunk",
@@ -889,19 +1351,24 @@ def main() -> None:
     )
     st.markdown("<style>.block-container{padding-top:1.25rem}</style>", unsafe_allow_html=True)
     st.title("Haz tu propio mapa")
+    with st.sidebar:
+        source = st.selectbox("Fuente", ["Censo 2020 · INEGI", "Delitos · SESNSP"],
+                              key="cartografunk_fuente")
     map_tab, graph_tab, compass_tab = st.tabs(["Mapa", "Gráfica", "Compass"], on_change="rerun")
     if map_tab.open:
         with map_tab:
-            render_map()
+            render_crime_map() if source == "Delitos · SESNSP" else render_map()
     if graph_tab.open:
         with graph_tab:
-            render_graph()
+            render_crime_graph() if source == "Delitos · SESNSP" else render_graph()
     if compass_tab.open:
         with compass_tab:
-            render_compass()
+            render_crime_compass() if source == "Delitos · SESNSP" else render_compass()
     st.caption(
         "Fuentes: Datos y geografía: Censo de Población y Vivienda INEGI "
         "(2020) y Marco Geoestadístico Nacional INEGI (2025). "
+        "Incidencia delictiva y víctimas del fuero común: SESNSP, nueva metodología "
+        "(registro 2015–2025, descarga con corte de septiembre de 2026). "
         "Paletas: ColorBrewer 2.0."
     )
 

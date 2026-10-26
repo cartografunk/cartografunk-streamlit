@@ -1,6 +1,10 @@
 # Cartografunk · Explorador público
 
-Aplicación Streamlit para consultar indicadores del Censo 2020/SCINCE por estado, municipio y metrópoli. Incluye mapa, gráfica de barras o línea, clasificación, tabla, descarga CSV y compass estatal. No utiliza Supabase ni login.
+Aplicación Streamlit para consultar indicadores del Censo 2020/SCINCE y registros del fuero común del SESNSP (2015–2025). Incluye mapa, gráfica, tabla, descarga CSV y compass estatal. No utiliza Supabase ni login.
+
+## Fuente SESNSP
+
+En **Fuente → Delitos · SESNSP**, el mapa muestra incidencia estatal o municipal y víctimas estatales. La gráfica presenta la serie histórica mensual o anual; Compass compara un indicador fijo del CPV 2020 con un delito en el año elegido, o dos delitos, con cortes fijos. Los porcentajes disponibles son participación del municipio en el estado y participación del periodo en el historial 2015–2025 para el mismo delito. Las tasas de 2020–2025 utilizan `POB1` del CPV 2020 como denominador fijo y lo indican en pantalla; para varios años se muestra el promedio anual. Los tres ZIP de origen, el diccionario metodológico y los SHA-256 constan en `data/crimen_sesnsp/catalogo_fuentes.json`. El año 2025 tiene los 12 meses registrados.
 
 ## Filtro municipal
 
@@ -12,7 +16,7 @@ Aplicación Streamlit para consultar indicadores del Censo 2020/SCINCE por estad
 
 ## Archivos
 
-`data/publico/` contiene las tablas por nivel y tema. `data/geometria/` contiene únicamente copias de visualización. `data/dim_*.parquet` guarda las dimensiones. `data/agrupacion_excepciones.csv` es la configuración de dos agrupaciones de variables. `static/municipal_visual_1000m.json` es la geometría estática que el componente municipal carga una vez. `components/municipal_map/dist/municipal_map.js` es el front-end ya compilado; no hace falta npm en el servidor. `assets/img/favicon.webp` es el icono de la app.
+`data/publico/` contiene las tablas del Censo por nivel y tema. `data/crimen_sesnsp/` contiene los Parquet SESNSP por fuente y año, la dimensión de delitos, el catálogo de procedencia y el manifiesto. `data/geometria/` contiene únicamente copias de visualización. `data/dim_*.parquet` guarda las dimensiones geográficas y del Censo. `data/agrupacion_excepciones.csv` es la configuración de dos agrupaciones de variables. `static/municipal_visual_1000m.json` es la geometría estática que el componente municipal carga una vez. `components/municipal_map/dist/municipal_map.js` es el front-end ya compilado; no hace falta npm en el servidor. `assets/img/favicon.webp` es el icono de la app.
 
 ## Ejecución local
 
@@ -50,4 +54,4 @@ git push -u origin main
 
 ## Atribuciones
 
-Fuentes: Datos y geografía: Censo de Población y Vivienda INEGI (2020) y Marco Geoestadístico Nacional INEGI (2025). Paletas: ColorBrewer 2.0. Estas atribuciones también se muestran dentro de la app.
+Fuentes: Censo de Población y Vivienda INEGI (2020), Marco Geoestadístico Nacional INEGI (2025), incidencia delictiva y víctimas del fuero común SESNSP (descarga con corte de septiembre de 2026). Paletas: ColorBrewer 2.0. Estas atribuciones también se muestran dentro de la app.
