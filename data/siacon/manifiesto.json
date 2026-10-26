@@ -1,0 +1,1033 @@
+{
+  "sha256_fuente": "be528dd2b7f821bc8f5e007164b1c0a53e1f97f5564a30b78bc9b78735557a89",
+  "tablas": [
+    {
+      "tabla": "agro_cierre_estatal",
+      "filas": 197455,
+      "anio_min": 1980,
+      "anio_max": 2024,
+      "anios": 45
+    },
+    {
+      "tabla": "agro_cierre_municipal",
+      "filas": 864462,
+      "anio_min": 2003,
+      "anio_max": 2024,
+      "anios": 22
+    },
+    {
+      "tabla": "peco_cierre_estatal",
+      "filas": 16447,
+      "anio_min": 1980,
+      "anio_max": 2024,
+      "anios": 45
+    },
+    {
+      "tabla": "peco_cierre_municipal",
+      "filas": 375677,
+      "anio_min": 2006,
+      "anio_max": 2024,
+      "anios": 19
+    },
+    {
+      "tabla": "peso_cierre_estatal",
+      "filas": 8464,
+      "anio_min": 2011,
+      "anio_max": 2018,
+      "anios": 8
+    }
+  ],
+  "catalogos": {
+    "cat_ciclo": 5,
+    "cat_clasificacion": 3,
+    "cat_cultivo": 455,
+    "cat_especie": 10,
+    "cat_especiepesquero": 401,
+    "cat_estado": 32,
+    "cat_generico": 399,
+    "cat_gruponatural": 13,
+    "cat_litoral": 3,
+    "cat_mercado": 2,
+    "cat_modalidad": 3,
+    "cat_municipio": 2535,
+    "cat_producto": 45,
+    "cat_region": 5,
+    "cat_tipo_produccion": 2,
+    "cat_tipoagricultura": 5,
+    "cat_unidadmedida": 23,
+    "cat_variedad": 1234,
+    "cultivo_generico": 432,
+    "pes_catalogo": 8,
+    "pes_elemento": 21,
+    "indicadores": 21
+  },
+  "archivos": [
+    {
+      "archivo": "agro_cierre_estatal/anio=1980/data.parquet",
+      "bytes": 57387,
+      "sha256": "d13c9858dc2e025cae3fe40651674c98e0a2e920cdf0c607c1dda624af0ae074",
+      "filas": 2462
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1981/data.parquet",
+      "bytes": 59683,
+      "sha256": "74a9e244d1cf9b5529875e6f144f565d1035df5c7c6a62c4d3e9d7d89000ec3e",
+      "filas": 2493
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1982/data.parquet",
+      "bytes": 63229,
+      "sha256": "2e5590b790e2de4a065f3cf0560eae6d75bebff990a6be70a1c14640d84f7f65",
+      "filas": 2606
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1983/data.parquet",
+      "bytes": 62385,
+      "sha256": "8eec3740ca50c45c37f6e628eb5056646606595fe434b5248ac0dae1f85a27c6",
+      "filas": 2494
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1984/data.parquet",
+      "bytes": 63357,
+      "sha256": "ea0408c986a1fdc0afdbaacab0358b61d5f4f742191bb4d82eea7dd0634a473c",
+      "filas": 2537
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1985/data.parquet",
+      "bytes": 64136,
+      "sha256": "1ed5a0f0fbf25e5654be3c3161576824424e6ab58b1a4f49c7cd9b5113a2b7ae",
+      "filas": 2547
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1986/data.parquet",
+      "bytes": 68754,
+      "sha256": "df7d158b1a373c75908746bd384d1a8fdb7eda9e1106df1654fbf4cb9c83568c",
+      "filas": 2756
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1987/data.parquet",
+      "bytes": 71767,
+      "sha256": "1db33be6be1559a2c28b57d9bebec1f0687562eafbc7d806b8702e8d1236ea32",
+      "filas": 2891
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1988/data.parquet",
+      "bytes": 73681,
+      "sha256": "9f20eb8d0e088bc9a1432d5ce5181d9586e50e145caf8bae073050506948fc62",
+      "filas": 2920
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1989/data.parquet",
+      "bytes": 70885,
+      "sha256": "f7e83decc8b5ae2b680904d4e654cf139f4e59fc98d01ae987c55c05ac665ebc",
+      "filas": 2768
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1990/data.parquet",
+      "bytes": 69452,
+      "sha256": "eebeb06f6bb5156b07bd76115dd2fbf66609018457b73725f4bbbd4109a12f7c",
+      "filas": 2771
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1991/data.parquet",
+      "bytes": 73304,
+      "sha256": "7f9b66f86737a03d8babc3185db06072af404745ac098dc6f72766cc13f148e9",
+      "filas": 2962
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1992/data.parquet",
+      "bytes": 76336,
+      "sha256": "df44a74fcfdda4056d4672c999f7e203bb686dcc5afa4a339d8014a9c8c3cd00",
+      "filas": 3097
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1993/data.parquet",
+      "bytes": 73854,
+      "sha256": "e245ef25e8a32ad8552b43ce1ae633050a612304a8d1c9585b96e8333c68dbfe",
+      "filas": 3060
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1994/data.parquet",
+      "bytes": 79898,
+      "sha256": "ffb364318a6b544bfa31c22d228d2da73a8df777285caa4f7a4cd52cd7fc0f20",
+      "filas": 2996
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1995/data.parquet",
+      "bytes": 75816,
+      "sha256": "cbc9663ebd790236b7f5bc9c788c132a37cb7848d2d3460c1fdf2156ebdf75de",
+      "filas": 3097
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1996/data.parquet",
+      "bytes": 83777,
+      "sha256": "4f77a38635e91dc18ac1fd47590f13230da7ddfe213e3ea8f33aced6dee30117",
+      "filas": 3215
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1997/data.parquet",
+      "bytes": 88514,
+      "sha256": "852caa17957490a872f9842d0e611ace9a7b01a55989b0c88187d7c6c5c1c267",
+      "filas": 3397
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1998/data.parquet",
+      "bytes": 96782,
+      "sha256": "551d34dc9a2d1fe175247e230864c912b073066d0881e08084110127ef0c871a",
+      "filas": 3585
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=1999/data.parquet",
+      "bytes": 109933,
+      "sha256": "91e6ecc9237710b1667cc82cb635a1e91dac47ab1476843d58ba016ecf78d41f",
+      "filas": 4007
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2000/data.parquet",
+      "bytes": 114325,
+      "sha256": "a19f6a0961152346e3818d62006de3213c09a9c4ff5df6390a8f3c81d193906f",
+      "filas": 4213
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2001/data.parquet",
+      "bytes": 120958,
+      "sha256": "261922ea5dc43167e7ddb97ca76f4f24aab1326fe3eda4204a9affbb13fdf8d0",
+      "filas": 4499
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2002/data.parquet",
+      "bytes": 127466,
+      "sha256": "78dd86262046287468595fda81e32b58d622778438b6b6fb405a7d0315c1d0cd",
+      "filas": 4647
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2003/data.parquet",
+      "bytes": 128917,
+      "sha256": "848fd4570047a1435bbc93ae6e824e16fc393818672711cbd2793ce31e3dd28e",
+      "filas": 4860
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2004/data.parquet",
+      "bytes": 133152,
+      "sha256": "6dbf3cb66613c0177eecaa45b803620a3674a4309b40993e6cb5beff7acddad7",
+      "filas": 4972
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2005/data.parquet",
+      "bytes": 139376,
+      "sha256": "88f1ede641aa605d9cc5f342a0493277eecd0ec190de1d755eef7d21f116a664",
+      "filas": 5332
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2006/data.parquet",
+      "bytes": 144080,
+      "sha256": "ca1f54da47a4222b6cf35cf1a7e9d7be7561a5a4c78504652455bb98a39e4fc2",
+      "filas": 5442
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2007/data.parquet",
+      "bytes": 147662,
+      "sha256": "c90ca09436167bd77e9f665bdabce2c2e4f7214aa5a38d360d0f2a9448b0bcbf",
+      "filas": 5533
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2008/data.parquet",
+      "bytes": 146961,
+      "sha256": "af341d63dadadcf9c3fb04f1256835c697ab3ce15debc4fb094a51c3151f3f4c",
+      "filas": 5464
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2009/data.parquet",
+      "bytes": 146531,
+      "sha256": "061bd11f17b51cdd20b5e0407dc75221656d2b3d71ae9957c65367c04c2b8c32",
+      "filas": 5433
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2010/data.parquet",
+      "bytes": 157104,
+      "sha256": "3c74217a65067d0b3f456937972073c710c3f252510bf8d2d54082ba708ffad8",
+      "filas": 5504
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2011/data.parquet",
+      "bytes": 162846,
+      "sha256": "e813f8a9d85095a6a696c2f173b7c1feca6effc8bcabe9a27e36e9ce66bcb393",
+      "filas": 5681
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2012/data.parquet",
+      "bytes": 168469,
+      "sha256": "571a433735858469bfe6d789efff1e115262855e522640ec2748e6916b43e3af",
+      "filas": 5607
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2013/data.parquet",
+      "bytes": 170311,
+      "sha256": "937325731e3bd2c60e34df45c1e3d8bfa7a34ca0053c18135b921d7f0eca7b96",
+      "filas": 5682
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2014/data.parquet",
+      "bytes": 177007,
+      "sha256": "daa32cf45c6a17e92bad55c1ed622fe3cb7c545e74e9bc33b765cafed0fccf5d",
+      "filas": 5747
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2015/data.parquet",
+      "bytes": 188319,
+      "sha256": "c48571d5962e035f1d69c78adaf5519703056f8f3da409cec25ef648d3a9d648",
+      "filas": 5916
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2016/data.parquet",
+      "bytes": 215706,
+      "sha256": "ee9c0694d14b739286c716ce956f1fa85d728396f83047141cd88176f0741362",
+      "filas": 5982
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2017/data.parquet",
+      "bytes": 195725,
+      "sha256": "77a1145a4cec709457cfe213267a179e9fe28f03684043b3b8f9b54e0a455f97",
+      "filas": 6062
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2018/data.parquet",
+      "bytes": 207949,
+      "sha256": "93093247cd35b6d24a5f85356d351efd440868a9cccf8df2cd8d2285914f1133",
+      "filas": 6017
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2019/data.parquet",
+      "bytes": 199122,
+      "sha256": "36322a9fb9ea2883d6423d0b56c933c49ee1a40e201c1ebe74fdc1acb76b5aaa",
+      "filas": 5951
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2020/data.parquet",
+      "bytes": 204464,
+      "sha256": "9fa3446af4e4176525cc7f466b581ddff05c7c13303ea07ea119b1a64585bd1c",
+      "filas": 5865
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2021/data.parquet",
+      "bytes": 203782,
+      "sha256": "b5754e393068517bb57c44eeb6ab0e42f50b40ed0abc614a3c534c15d61ce694",
+      "filas": 5877
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2022/data.parquet",
+      "bytes": 200649,
+      "sha256": "d7dc3ce13a52551d163f20e3e9527a0bff56d4573e3f1aea746388072cb30fe1",
+      "filas": 6163
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2023/data.parquet",
+      "bytes": 211918,
+      "sha256": "1756695a80c30598d05323ab4779ca1096ea3b6dcd8180a73050e99de909eef6",
+      "filas": 6459
+    },
+    {
+      "archivo": "agro_cierre_estatal/anio=2024/data.parquet",
+      "bytes": 196027,
+      "sha256": "91ab042f6e930ecbc8c8ea3b3f0e0c65f47c5b26041a16e98755b882d7a12afc",
+      "filas": 5886
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2003/data.parquet",
+      "bytes": 622038,
+      "sha256": "bfbf340f9c056d73c81e5fc675a392110707ba8e3c570f0b0e4a7c179549d876",
+      "filas": 36904
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2004/data.parquet",
+      "bytes": 626909,
+      "sha256": "5dba61b94f5f6de9ead2db6fe58d0c3116343198546dbb336bd213076b257615",
+      "filas": 37720
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2005/data.parquet",
+      "bytes": 645864,
+      "sha256": "e1e4292a6cc1efe12adab4711cc27dd53d3c2604d4143ab55f54448a6cdaf8e1",
+      "filas": 38957
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2006/data.parquet",
+      "bytes": 674047,
+      "sha256": "fb829852a4775caed821852a16a85831e165cd30afa51c2c2495457f5c61cfb8",
+      "filas": 39077
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2007/data.parquet",
+      "bytes": 658178,
+      "sha256": "48a790df0ac21ef27dd37c516bc4427362dda98b5c98fda8619278be3631cfad",
+      "filas": 39080
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2008/data.parquet",
+      "bytes": 666645,
+      "sha256": "012a0113754c5cba133a621aa9c0a7c8010d9ff255853f5a95c89a09edd7c444",
+      "filas": 38574
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2009/data.parquet",
+      "bytes": 650890,
+      "sha256": "67843ba107a025d03a1be7019eb4c48a0fb0b00e13c994a7a0d49ebca5973383",
+      "filas": 38455
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2010/data.parquet",
+      "bytes": 783545,
+      "sha256": "674d78f04e7cd6d41bcb0e2b819bdd7e1c8aa7eadd3d0964d8ea2cfa73901f50",
+      "filas": 39285
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2011/data.parquet",
+      "bytes": 802788,
+      "sha256": "b60d134f066830f8fbf688b81da2674108215bf9ee17800b978db3cff91832f5",
+      "filas": 39296
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2012/data.parquet",
+      "bytes": 930856,
+      "sha256": "ca986ece5a2cb454e95bec9794d167ca93e0d87d2a21e9790e92100b5967238b",
+      "filas": 39461
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2013/data.parquet",
+      "bytes": 863164,
+      "sha256": "ae28c6a8f2afae82c6608d716ef75649c8f25d4541cd0e172f66d8b46cb965e7",
+      "filas": 39933
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2014/data.parquet",
+      "bytes": 910949,
+      "sha256": "8e82fe089450559ea1630aefbd8198f3e30c7047a6eb3dfbc4122f323f39f408",
+      "filas": 39873
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2015/data.parquet",
+      "bytes": 993446,
+      "sha256": "53ed4abe9f6f22081601f5ae58ddc1e9e85e2f1e9b840536024d432ee630bef7",
+      "filas": 41346
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2016/data.parquet",
+      "bytes": 1043917,
+      "sha256": "d9af223ccc54bb96e4d927b7bc3c29c36eb42396b6a396653e55a80b916275e0",
+      "filas": 40861
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2017/data.parquet",
+      "bytes": 1070693,
+      "sha256": "48eb36ae83ca711337e7b0e1c21a9171f41fac96df8a65294ffb8507ec68748a",
+      "filas": 41092
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2018/data.parquet",
+      "bytes": 1196543,
+      "sha256": "ecdb500050ca75cc695a18d856c94ff3d5fcc14be27cbdbad3c54445777a0034",
+      "filas": 40775
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2019/data.parquet",
+      "bytes": 1156721,
+      "sha256": "d2bb1ca9edfba8ff83a6756458b3eece41d6c54774827e046f7248db8a4c38a7",
+      "filas": 40898
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2020/data.parquet",
+      "bytes": 899252,
+      "sha256": "d149978d00d2852e80435bc940bf74fa0a72e3290cd6f92ee6f5172e3df6afbb",
+      "filas": 32604
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2021/data.parquet",
+      "bytes": 948986,
+      "sha256": "2d822ed04cfe1045805f8fae9b51b9a76a2ebfee1a7ce83e1e1375262b258395",
+      "filas": 32733
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2022/data.parquet",
+      "bytes": 1116249,
+      "sha256": "711c165fba44ca43c90208db18fb3bd73d4ee25c16a5742efd00a6e7c69de92e",
+      "filas": 42157
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2023/data.parquet",
+      "bytes": 1167142,
+      "sha256": "0dadf9a2801283968220db57199fecd6894741951692e04f9601c27079ec03c1",
+      "filas": 43809
+    },
+    {
+      "archivo": "agro_cierre_municipal/anio=2024/data.parquet",
+      "bytes": 1115972,
+      "sha256": "69a59b8f75c7f96aefd8730ad39fbe8fbb2e35e50acbcc6e7698a75f090edf1b",
+      "filas": 41572
+    },
+    {
+      "archivo": "catalogos/cat_ciclo.parquet",
+      "bytes": 969,
+      "sha256": "605ff251db6e64d39eef71c0b4864282fb862af19ffd9832350b221211c610f0",
+      "filas": 5
+    },
+    {
+      "archivo": "catalogos/cat_clasificacion.parquet",
+      "bytes": 1222,
+      "sha256": "39284321cfba10c10d2b67589978d6227e3dcac2ae1125abcd4bbf381cc5e709",
+      "filas": 3
+    },
+    {
+      "archivo": "catalogos/cat_cultivo.parquet",
+      "bytes": 10446,
+      "sha256": "5842c045fe80153f72b55ef210384545cd85828673ab98334c9b52ba87c23ffd",
+      "filas": 455
+    },
+    {
+      "archivo": "catalogos/cat_especie.parquet",
+      "bytes": 1286,
+      "sha256": "1f421bccb2f37b705b500f86c125d8eefc2733208d574125b2eb4afb07d53ce5",
+      "filas": 10
+    },
+    {
+      "archivo": "catalogos/cat_especiepesquero.parquet",
+      "bytes": 4519,
+      "sha256": "54e0ca7b83dd6ce86bc8a5936714c13d3d9bf3ce92e840b6fbde0f1b4f26ff53",
+      "filas": 401
+    },
+    {
+      "archivo": "catalogos/cat_estado.parquet",
+      "bytes": 1873,
+      "sha256": "6968c98670da4e5614ff81129d74994096cde51349a5a7e3ecb51b9aa3161208",
+      "filas": 32
+    },
+    {
+      "archivo": "catalogos/cat_generico.parquet",
+      "bytes": 5186,
+      "sha256": "40181621e7ab003d49f8a025099ef6ee82d0ed6930f44b8bf5f7930e9fe5e990",
+      "filas": 399
+    },
+    {
+      "archivo": "catalogos/cat_gruponatural.parquet",
+      "bytes": 1002,
+      "sha256": "a6e5b97ed373b9a1b2597b60f8274eebdeed40db8431ba2d9e6532fc190252c9",
+      "filas": 13
+    },
+    {
+      "archivo": "catalogos/cat_litoral.parquet",
+      "bytes": 1064,
+      "sha256": "24d6549233ab35b78152544b8330c9d46a70d2b9bd6c1aa7a9d81bb3397aa3a8",
+      "filas": 3
+    },
+    {
+      "archivo": "catalogos/cat_mercado.parquet",
+      "bytes": 845,
+      "sha256": "67d48236dcd1da69abb7ee6a82e22256ec8409197191e5d512862709c0e42db2",
+      "filas": 2
+    },
+    {
+      "archivo": "catalogos/cat_modalidad.parquet",
+      "bytes": 858,
+      "sha256": "dcc56a865809fd55ad8e5b5be2a9f7d4d6f07f6ddd2488987034fa00ad7bdcf1",
+      "filas": 3
+    },
+    {
+      "archivo": "catalogos/cat_municipio.parquet",
+      "bytes": 26144,
+      "sha256": "2f46b55566aa325f339f810ba25a6fe627f3e78b4161b4bee12bb5406713393a",
+      "filas": 2535
+    },
+    {
+      "archivo": "catalogos/cat_producto.parquet",
+      "bytes": 1885,
+      "sha256": "7e78529d3a05b7597a2499c119c33e3b0e91751bfe4bf347d02942c4f3badb66",
+      "filas": 45
+    },
+    {
+      "archivo": "catalogos/cat_region.parquet",
+      "bytes": 887,
+      "sha256": "143fb6f007ade670bfbffe0737cba9f8e30e227b2172fcfc79f06708169340db",
+      "filas": 5
+    },
+    {
+      "archivo": "catalogos/cat_tipo_produccion.parquet",
+      "bytes": 900,
+      "sha256": "185789cb7f0d75891c74a6c86c7e2bfd9372a7eb52cd164f305edd2d13151d1a",
+      "filas": 2
+    },
+    {
+      "archivo": "catalogos/cat_tipoagricultura.parquet",
+      "bytes": 970,
+      "sha256": "29f5563640805b12645781e817b4b5922667afa62ca228c49529022739716aa0",
+      "filas": 5
+    },
+    {
+      "archivo": "catalogos/cat_unidadmedida.parquet",
+      "bytes": 1589,
+      "sha256": "29ea4d23b1f880deeef1badeea3c02a5b2787d0072a8812fc9affab986a7a132",
+      "filas": 23
+    },
+    {
+      "archivo": "catalogos/cat_variedad.parquet",
+      "bytes": 31930,
+      "sha256": "4f3af4ae5b9d31fccaec6c397a4130df1bd503a009b6defab1c7300efad0221d",
+      "filas": 1234
+    },
+    {
+      "archivo": "catalogos/cultivo_generico.parquet",
+      "bytes": 3474,
+      "sha256": "2c80e8072ae29d916c76bf5d082c2d6eefcacd3a171453d6c6517b955305c490",
+      "filas": 432
+    },
+    {
+      "archivo": "catalogos/indicadores.parquet",
+      "bytes": 2220,
+      "sha256": "e49660e89908b330d6a60c0c5317f00f0b92852792a6774ee44a79d2590eb946",
+      "filas": 21
+    },
+    {
+      "archivo": "catalogos/pes_catalogo.parquet",
+      "bytes": 990,
+      "sha256": "cdb71ace2a5f572760dcab8a3d4ee843f57c1979e5050f2c1903c16cec04797c",
+      "filas": 8
+    },
+    {
+      "archivo": "catalogos/pes_elemento.parquet",
+      "bytes": 1807,
+      "sha256": "2313a7a5544ad83b952e19a54f3766e34cc5965e8783a0d36d591febb12d9b1e",
+      "filas": 21
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1980/data.parquet",
+      "bytes": 12382,
+      "sha256": "6e837629f255cd1a15256cac4697495940c9ffd92135401eebf28323aec77624",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1981/data.parquet",
+      "bytes": 12473,
+      "sha256": "f14d09ab6bd6c48de27b517f3d0017df88603d643868b7fb17bba87285014168",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1982/data.parquet",
+      "bytes": 12749,
+      "sha256": "0057580f19116dc39cd422e5f48068f285eaa61296707f5bd5c51d1d0693cdd1",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1983/data.parquet",
+      "bytes": 12920,
+      "sha256": "0376cb64263639ada6fdb9254d2b1f3b43d528085a2b468d3df4df814ee4bda9",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1984/data.parquet",
+      "bytes": 13071,
+      "sha256": "279ae63dbe78381b883c18445d19f0cbb9b09a93c99c13866d7666605269946e",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1985/data.parquet",
+      "bytes": 12697,
+      "sha256": "df0a82c473f8a69658bc8c68be32abc7337f4fdc46cf694de1f61c9c3412e1aa",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1986/data.parquet",
+      "bytes": 12739,
+      "sha256": "98782e6938810cf754c6e7bd138fed8c67bf04767226c292fd449ef5f35298fd",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1987/data.parquet",
+      "bytes": 13132,
+      "sha256": "eb8cf2470d2948c88caea479837127a15370f78548f8f0a1695f4764a5a0d90e",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1988/data.parquet",
+      "bytes": 13430,
+      "sha256": "32fbe39e25d98605449cbe0df7edb50be5966f68ca70333f6f16aebedebb5afe",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1989/data.parquet",
+      "bytes": 14062,
+      "sha256": "c5eaa22ee7300ece0f0ff412b716132e3586d9d08aec1ce20dd8dbe0b85d182a",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1990/data.parquet",
+      "bytes": 14098,
+      "sha256": "750335a795a50d774f015ae6d0f75445bbc4d8c7d019733bc84b5e471bc9c47a",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1991/data.parquet",
+      "bytes": 14082,
+      "sha256": "2146b7439d1be9cc4543ffd76baa7b7f3b3e848d680c53e34487af37e733ceea",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1992/data.parquet",
+      "bytes": 14086,
+      "sha256": "426aa9493532fe08857372174903821b3967a2348bb2e7bc701f8247d373db4c",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1993/data.parquet",
+      "bytes": 13503,
+      "sha256": "aec4af93bf5213523a37b2ae3e286185e3aa2081d0238e1d6aeca0ddbcaa7697",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1994/data.parquet",
+      "bytes": 13495,
+      "sha256": "909e72e016cbb1005922e3665e29874e2a539bbb81512636a870b088770d8574",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1995/data.parquet",
+      "bytes": 13671,
+      "sha256": "2d0303cc174dc78f2eb6a6f5b0b0cf8e9c25e67ddf24b7a783bc2daf19a55aa1",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1996/data.parquet",
+      "bytes": 13799,
+      "sha256": "59aa8922e4b29ff728f794187034f2c8eb1c4778994dfc55cdd5818f5215b512",
+      "filas": 370
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1997/data.parquet",
+      "bytes": 16106,
+      "sha256": "2a862c0af3d2a761d77d12d5852a41ddeff3740db00e2cc850a81ec5f7e82190",
+      "filas": 352
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1998/data.parquet",
+      "bytes": 17822,
+      "sha256": "8cc4db4cb2126b96ac7535bf650ebce0af831be98c9af4c58eeb5d5cd7a9374b",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=1999/data.parquet",
+      "bytes": 18409,
+      "sha256": "a16a093d43db13cefa3f3ff10324e7461eb5ccd5acbc15e71e9264b91841e339",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2000/data.parquet",
+      "bytes": 18482,
+      "sha256": "d9b17668ac813e6ffa120a8e4884885d07a03568665a80516ea056284c3f25b5",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2001/data.parquet",
+      "bytes": 18875,
+      "sha256": "4b3825c107c4e79361011ceabb0a9efdcf3a74a77b2af6ff6747a0a1c6458033",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2002/data.parquet",
+      "bytes": 22444,
+      "sha256": "437899dc6690643bb30795e6bd0bfe768d0466d6638f3d5c261863cab18596a9",
+      "filas": 382
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2003/data.parquet",
+      "bytes": 22499,
+      "sha256": "4aec274149e5d83da1f2162e2de33c29cc46ab13f3f02f8a2244eb808197c38c",
+      "filas": 366
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2004/data.parquet",
+      "bytes": 22411,
+      "sha256": "00ff7ba370649ac1fe54de97cdd334de0825af3c946bf46a7fce02c366e35d1d",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2005/data.parquet",
+      "bytes": 22713,
+      "sha256": "16c1ffbd27cf588cde82281cb236306608baff291f15749dc058af318a697bb6",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2006/data.parquet",
+      "bytes": 21517,
+      "sha256": "edad034035680bfb70f57816285f496973d6b47c5a6675486e176a07db3652f2",
+      "filas": 332
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2007/data.parquet",
+      "bytes": 21405,
+      "sha256": "ab0ebee6eb7f043259436ea09b676227ccd918c2af57d97fb9bb9afe6c02c133",
+      "filas": 329
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2008/data.parquet",
+      "bytes": 21396,
+      "sha256": "da86e6b82894541ebe6bfff277d276b5c164ada477288138f9fea26ceadc7204",
+      "filas": 328
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2009/data.parquet",
+      "bytes": 21349,
+      "sha256": "00421b6b366f8e24de48fb523b0e5f401d4ccf1e350c12f36a4b6bccf26b0374",
+      "filas": 328
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2010/data.parquet",
+      "bytes": 21479,
+      "sha256": "3d9d636424a1d5e053ed68a30f93695a79d1a7c144dc5535fd985536947798e6",
+      "filas": 328
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2011/data.parquet",
+      "bytes": 21490,
+      "sha256": "0e1544f238bdd95dd65121b48034c3d732fb98c5e2d280f5afc3aa125206ccc2",
+      "filas": 328
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2012/data.parquet",
+      "bytes": 22061,
+      "sha256": "82e3e2afff32b3539ccc7da43cc303ea438c884f4a7787e54a47e7a5ace3a958",
+      "filas": 329
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2013/data.parquet",
+      "bytes": 21602,
+      "sha256": "462ad195ac6690857759b77ca38b1aee187e6a9f39ee98bb03ccc371ea6259d5",
+      "filas": 330
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2014/data.parquet",
+      "bytes": 21639,
+      "sha256": "6071aa881d227ac2484fc62059449ae92eef89ac5acd173df38c9f81a17f1e5f",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2015/data.parquet",
+      "bytes": 21252,
+      "sha256": "011c0af919d6d4c6b74a7583e30c663dd78ae2aaf5422685489194f98ba4d5c6",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2016/data.parquet",
+      "bytes": 21221,
+      "sha256": "9594681ad81911f63caec15ddfaa8645264ef069247926d5090b8c57a1b1fc15",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2017/data.parquet",
+      "bytes": 21621,
+      "sha256": "fa4802be36cb4de60333f80944089d0e914c755f8c0c8b68a6aa3b9d7d59eb01",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2018/data.parquet",
+      "bytes": 21948,
+      "sha256": "01bbb4f10c41a8903bbc52549c182c6cb8e973ae30074dcc0f4e2efa5531df4b",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2019/data.parquet",
+      "bytes": 21452,
+      "sha256": "4575c6a520ada0432c718ce3cd38b8dfa6c9a80437b3e67fdc0ccf57c694d54f",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2020/data.parquet",
+      "bytes": 21609,
+      "sha256": "c7fa9279ed0554c82ab49680c3205558a870ea2b45604e2a1e0b07da2e69c0fa",
+      "filas": 331
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2021/data.parquet",
+      "bytes": 21132,
+      "sha256": "2068017ce014b39ec66762d7ca12ffe973555c880126101ac00b6c055351f311",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2022/data.parquet",
+      "bytes": 21585,
+      "sha256": "3b7114fe22f4aa3830ba3d7419d3c2ff43a8620e3d61c4eae41abd052f44dbb1",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2023/data.parquet",
+      "bytes": 21891,
+      "sha256": "8da49acb7c74bd7cb4756b297aad7170b72526570373cd851c8bb5fbae8f4614",
+      "filas": 384
+    },
+    {
+      "archivo": "peco_cierre_estatal/anio=2024/data.parquet",
+      "bytes": 20486,
+      "sha256": "c235d36bd0513eb1c977b083362a20fbe75c7d22fc1fcd7f3bf64c765b8694cb",
+      "filas": 334
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2006/data.parquet",
+      "bytes": 583663,
+      "sha256": "7f564ed1df7a6e8cebe5b08ae7d6821c63b35aa6bcbba990c5035033424144bb",
+      "filas": 16585
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2007/data.parquet",
+      "bytes": 587393,
+      "sha256": "30c8adcdd16f151ac39b0355c57a3e4504c4df82ad82d32a136fa8e563febe8e",
+      "filas": 16619
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2008/data.parquet",
+      "bytes": 593511,
+      "sha256": "7f31373f1541435217243179405f4c80e8bc6f8f0585c950693771aecd21885a",
+      "filas": 16604
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2009/data.parquet",
+      "bytes": 595946,
+      "sha256": "dd2ea99fb14b8c8a1e0793ccb2fd18a57cd686e574883109f8e79c4833a37097",
+      "filas": 16560
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2010/data.parquet",
+      "bytes": 597164,
+      "sha256": "5d6574916385325af4a2fc9ac8422d5178ece6180c3e99bddb9523ee5116cfcf",
+      "filas": 16571
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2011/data.parquet",
+      "bytes": 592725,
+      "sha256": "e0529415e28030e48e5563a211aca2587417be34f30543cded67d2c22233e92b",
+      "filas": 16462
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2012/data.parquet",
+      "bytes": 713965,
+      "sha256": "d773533bcf311a88d79ec9cfc403d242c0bea14aaf28eca9c3ca2097ab1c5bc4",
+      "filas": 21159
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2013/data.parquet",
+      "bytes": 693504,
+      "sha256": "b0b19f6bc9f8beabfa064d2d57a3c33d1f5d3cd2391e127c9ad7d8054a2efdd2",
+      "filas": 20989
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2014/data.parquet",
+      "bytes": 731911,
+      "sha256": "13f233e4eaf5294deafe0f123b83ba8e6ba8b9e204f484d576dbbe1407beb15f",
+      "filas": 21203
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2015/data.parquet",
+      "bytes": 693054,
+      "sha256": "385ed7e21c35bdecfbf018b1cab56ab8ed3d5d6cd27eb6cdadf549de6bd48b9a",
+      "filas": 21281
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2016/data.parquet",
+      "bytes": 695007,
+      "sha256": "a51eb7a5f0952c474701aed537f00bfaa63ac4e042772465fef1132259a5ec18",
+      "filas": 21196
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2017/data.parquet",
+      "bytes": 717454,
+      "sha256": "853ddd0bc8fbfa6f5f6df1fff3478b908c20e82d0ec35b5d7d28e431d142f220",
+      "filas": 21123
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2018/data.parquet",
+      "bytes": 727429,
+      "sha256": "e2df81403df7b4478dd1ffa2a06730ff8efff7b065e49ffb6c78bd7853a204b8",
+      "filas": 21188
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2019/data.parquet",
+      "bytes": 734901,
+      "sha256": "eb9b4c84908e08601a7fe5a96389f423d6e86bcc301664a0227a6188d36a6836",
+      "filas": 21244
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2020/data.parquet",
+      "bytes": 731508,
+      "sha256": "e5805d4d6f55c1f38ed0dc86c83c210ce2c9419b0f836f768610f53b98a2bd1e",
+      "filas": 21288
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2021/data.parquet",
+      "bytes": 691992,
+      "sha256": "a0df32649f962266e51011a0270af8bea69242ad2812528db600582d03a37381",
+      "filas": 21335
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2022/data.parquet",
+      "bytes": 714776,
+      "sha256": "6e510e15f8f8d6d6f2201d579c19313a221fe1680461a986e13bc7561cd350fd",
+      "filas": 21406
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2023/data.parquet",
+      "bytes": 746622,
+      "sha256": "b0ce0eb06e352a8b0ec6179e482c0658fb74da21e85c8318d9c2c4125f05cb3d",
+      "filas": 21429
+    },
+    {
+      "archivo": "peco_cierre_municipal/anio=2024/data.parquet",
+      "bytes": 776313,
+      "sha256": "6cfed0ff1d2ff3f3dc3941508a76a5124d89c3dc21560aa4ac10303e6d42cc29",
+      "filas": 21435
+    },
+    {
+      "archivo": "peso_cierre_estatal/anio=2011/data.parquet",
+      "bytes": 35708,
+      "sha256": "96ddd519cc8b9071cd51a66ee43a2338aed8c106d935aa583b07f39f3a80fbba",
+      "filas": 964
+    },
+    {
+      "archivo": "peso_cierre_estatal/anio=2012/data.parquet",
+      "bytes": 35831,
+      "sha256": "ccc6dbfede047d4a3f9eca04a09dfcb64081e8e060cb825dedfb84623d2f8933",
+      "filas": 1004
+    },
+    {
+      "archivo": "peso_cierre_estatal/anio=2013/data.parquet",
+      "bytes": 39346,
+      "sha256": "e0b8acd244ef70d6d23869e107c18d44b94470c930654452c652d865ba98a231",
+      "filas": 960
+    },
+    {
+      "archivo": "peso_cierre_estatal/anio=2014/data.parquet",
+      "bytes": 35791,
+      "sha256": "25ce11ea8eb0f724315ca322730cb4c9f7d402dec50dde161c48b08c27022c68",
+      "filas": 1074
+    },
+    {
+      "archivo": "peso_cierre_estatal/anio=2015/data.parquet",
+      "bytes": 41689,
+      "sha256": "fd5d67bc739a446a7871623c62afc7e2b7e8cc97ad4acb17edc9efb241eabe05",
+      "filas": 1037
+    },
+    {
+      "archivo": "peso_cierre_estatal/anio=2016/data.parquet",
+      "bytes": 27317,
+      "sha256": "26cc02ba3afa20b06245355d77ef882b52733dddb05536c0912910e03deb01ec",
+      "filas": 1077
+    },
+    {
+      "archivo": "peso_cierre_estatal/anio=2017/data.parquet",
+      "bytes": 27655,
+      "sha256": "f942d5708e437d59c21ed13f92683ec492133893ecb144398fb7ca3b5563b5af",
+      "filas": 1085
+    },
+    {
+      "archivo": "peso_cierre_estatal/anio=2018/data.parquet",
+      "bytes": 30748,
+      "sha256": "52cc419564dbe72d4c2e876ddb00a14ce0932bf514830f3e3b2073550af25563",
+      "filas": 1263
+    }
+  ],
+  "archivo_fuente": "siacon-ng.db"
+}

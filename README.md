@@ -1,6 +1,10 @@
 # Cartografunk · Explorador público
 
-Aplicación Streamlit para consultar indicadores del Censo 2020/SCINCE y registros del fuero común del SESNSP (2015–2025). Incluye mapa, gráfica, tabla, descarga CSV y compass estatal. No utiliza Supabase ni login.
+Aplicación Streamlit para consultar indicadores del Censo 2020/SCINCE, registros del fuero común del SESNSP (2015–2025) y producción agrícola, pecuaria y pesquera de SIACON. Incluye mapa, gráfica, tabla, descarga CSV y compass estatal. No utiliza Supabase ni login.
+
+## Fuente SIACON
+
+En **Fuente → Producción agropecuaria y pesquera · SIACON** se elige Agricultura, Ganadería o Pesca. Agricultura y Ganadería tienen mapas estatales y municipales; Pesca solo tiene mapa estatal. La gráfica muestra series anuales y Compass compara dos indicadores de un mismo producto o especie entre estados en un año. Los años disponibles en esta copia son 1980–2024 para Agricultura y Ganadería estatales, 2003–2024 para Agricultura municipal, 2006–2024 para Ganadería municipal y 2011–2018 para Pesca estatal. Los archivos conservan todas las columnas numéricas y de clasificación del SQLite; la interfaz suma solo superficies, volúmenes y valores dentro del producto elegido. El inventario se muestra por un año. Algunas unidades de pesca no están documentadas dentro de la base y se indican como tales en pantalla. Procedencia y SHA-256 en `data/siacon/manifiesto.json`.
 
 ## Fuente SESNSP
 
@@ -16,7 +20,7 @@ En **Fuente → Delitos · SESNSP**, el mapa muestra incidencia estatal o munici
 
 ## Archivos
 
-`data/publico/` contiene las tablas del Censo por nivel y tema. `data/crimen_sesnsp/` contiene los Parquet SESNSP por fuente y año, la dimensión de delitos, el catálogo de procedencia y el manifiesto. `data/geometria/` contiene únicamente copias de visualización. `data/dim_*.parquet` guarda las dimensiones geográficas y del Censo. `data/agrupacion_excepciones.csv` es la configuración de dos agrupaciones de variables. `static/municipal_visual_1000m.json` es la geometría estática que el componente municipal carga una vez. `components/municipal_map/dist/municipal_map.js` es el front-end ya compilado; no hace falta npm en el servidor. `assets/img/favicon.webp` es el icono de la app.
+`data/publico/` contiene las tablas del Censo por nivel y tema. `data/crimen_sesnsp/` contiene los Parquet SESNSP por fuente y año, la dimensión de delitos, el catálogo de procedencia y el manifiesto. `data/siacon/` contiene los cinco cierres anuales, sus catálogos y el manifiesto. `data/geometria/` contiene únicamente copias de visualización. `data/dim_*.parquet` guarda las dimensiones geográficas y del Censo. `data/agrupacion_excepciones.csv` es la configuración de dos agrupaciones de variables. `static/municipal_visual_1000m.json` es la geometría estática que el componente municipal carga una vez. `components/municipal_map/dist/municipal_map.js` es el front-end ya compilado; no hace falta npm en el servidor. `assets/img/favicon.webp` es el icono de la app.
 
 ## Ejecución local
 
@@ -54,4 +58,4 @@ git push -u origin main
 
 ## Atribuciones
 
-Fuentes: Censo de Población y Vivienda INEGI (2020), Marco Geoestadístico Nacional INEGI (2025), incidencia delictiva y víctimas del fuero común SESNSP (descarga con corte de septiembre de 2026). Paletas: ColorBrewer 2.0. Estas atribuciones también se muestran dentro de la app.
+Fuentes: Censo de Población y Vivienda INEGI (2020), Marco Geoestadístico Nacional INEGI (2025), incidencia delictiva y víctimas del fuero común SESNSP (descarga con corte de septiembre de 2026), producción agrícola, pecuaria y pesquera SIACON (copia local con datos hasta 2024; pesca hasta 2018). Paletas: ColorBrewer 2.0. Estas atribuciones también se muestran dentro de la app.

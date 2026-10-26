@@ -412,7 +412,8 @@ def metro_bubbles(shapes: list[tuple[str, dict]], frame: pd.DataFrame,
     return points, legend_items
 
 
-def legend(items: list[tuple[str, float, float, bool]], unit: str) -> None:
+def legend(items: list[tuple[str, float, float, bool]], unit: str,
+           missing_label: str = "Sin CPV") -> None:
     if not items:
         return
     labels = []
@@ -426,7 +427,7 @@ def legend(items: list[tuple[str, float, float, bool]], unit: str) -> None:
         )
     labels.append('<div style="display:flex;align-items:center;gap:9px;margin:4px 0">'
                   '<span style="display:inline-block;background:#b2b9c2;width:17px;'
-                  'height:17px;border:1px solid #888;flex:none"></span><span>Sin CPV</span></div>')
+                  f'height:17px;border:1px solid #888;flex:none"></span><span>{missing_label}</span></div>')
     st.markdown('<div style="line-height:1.35">' + "".join(labels) + '</div>', unsafe_allow_html=True)
 
 
@@ -1342,6 +1343,341 @@ def render_crime_compass() -> None:
                  hide_index=True, width="stretch")
 
 
+SIACON_SECTORS = {
+    "Agricultura": {"estatal": "agro_cierre_estatal", "municipal": "agro_cierre_municipal"},
+    "Ganadería": {"estatal": "peco_cierre_estatal", "municipal": "peco_cierre_municipal"},
+    "Pesca": {"estatal": "peso_cierre_estatal"},
+}
+SIACON_METRICS = {
+    "Agricultura": {
+        "Superficie sembrada": "sembrada", "Superficie cosechada": "cosechada",
+        "Superficie siniestrada": "siniestrada", "Volumen de producción": "volumenproduccion",
+        "Valor de producción": "valorproduccion",
+    },
+    "Ganadería": {
+        "Volumen en pie": "volumenpie", "Volumen en canal": "volumencanal",
+        "Valor en pie": "valorpie", "Valor en canal": "valorcanal",
+        "Inventario": "inventario", "Número de cabezas": "numerocabezas",
+    },
+    "Pesca": {
+        "Peso vivo": "pesovivo", "Peso desembarcado": "pesodesembarque",
+        "Valor": "valor",
+    },
+}
+SIACON_YEARS = {"Agricultura": {"estatal": (1980, 2024), "municipal": (2003, 2024)},
+                "Ganadería": {"estatal": (1980, 2024), "municipal": (2006, 2024)},
+                "Pesca": {"estatal": (2011, 2018)}}
+
+
+@st.cache_data(show_spinner=False)
+def siacon_catalog(table: str) -> pd.DataFrame:
+    allowed = {"cat_cultivo", "cat_producto", "cat_especie", "cat_especiepesquero",
+               "cat_unidadmedida"}
+    if table not in allowed:
+        raise ValueError("Catálogo SIACON desconocido")
+    return pd.read_parquet(DATA / "siacon" / "catalogos" / f"{table}.parquet")
+
+
+def siacon_source(sector: str, level: str) -> str:
+    return SIACON_SECTORS[sector][level]
+
+
+@st.cache_data(show_spinner=False)
+def siacon_available(sector: str, level: str) -> pd.DataFrame:
+    table = siacon_source(sector, level)
+    path = str(DATA / "siacon" / table / "anio=*" / "*.parquet")
+    if sector == "Agricultura":
+        columns = "idcultivo, idunidadmedida"
+    elif sector == "Ganadería":
+        columns = "idespecie, idproducto"
+    else:
+        columns = "idespecie"
+    cursor = duckdb_connection().cursor()
+    try:
+        return cursor.execute(f"SELECT DISTINCT {columns} FROM read_parquet(?, hive_partitioning=false)",
+                              [path]).df()
+    finally:
+        cursor.close()
+
+
+@st.cache_data(show_spinner=False)
+def siacon_annual(sector: str, level: str, category: int,
+                  product: int | None, metric: str) -> pd.DataFrame:
+    if metric not in SIACON_METRICS[sector].values():
+        raise ValueError("Métrica SIACON desconocida")
+    table = siacon_source(sector, level)
+    path = str(DATA / "siacon" / table / "anio=*" / "*.parquet")
+    if sector == "Agricultura":
+        column, conditions = "idcultivo", ""
+        params = [path, category]
+        if product is not None:
+            conditions = " AND idunidadmedida = ?"
+            params.append(product)
+    elif sector == "Ganadería":
+        column, conditions = "idespecie", " AND idproducto = ?"
+        params = [path, category, product]
+    else:
+        column, conditions = "idespecie", ""
+        params = [path, category]
+    cursor = duckdb_connection().cursor()
+    try:
+        return cursor.execute(f"""
+            SELECT cvegeo, anio,
+                   CASE WHEN count(*) FILTER (WHERE {metric} IS NULL) > 0 THEN NULL
+                        ELSE sum({metric}) END AS valor
+            FROM read_parquet(?, hive_partitioning=false)
+            WHERE {column} = ? {conditions}
+            GROUP BY cvegeo, anio ORDER BY cvegeo, anio
+        """, params).df()
+    finally:
+        cursor.close()
+
+
+def siacon_picker(suffix: str, *, compass: bool = False, series: bool = False) -> dict:
+    sector = st.selectbox("Sector", list(SIACON_SECTORS), key=f"siacon_{suffix}_sector")
+    levels = ["Estado"] if sector == "Pesca" or compass else ["Estado", "Municipio"]
+    level_label = st.selectbox("Nivel", levels, key=f"siacon_{suffix}_nivel")
+    level = LEVELS[level_label][0]
+    years = SIACON_YEARS[sector][level]
+    product = None
+    if sector == "Agricultura":
+        available = siacon_available(sector, level)
+        catalog = siacon_catalog("cat_cultivo").loc[
+            lambda frame: frame.idcultivo.isin(available.idcultivo)].sort_values("nomcultivo")
+        labels = dict(zip(catalog.idcultivo, catalog.nomcultivo))
+        category = st.selectbox("Cultivo", catalog.idcultivo.tolist(),
+                                format_func=lambda key: f"{labels[key]} · {key}",
+                                index=(catalog.idcultivo.tolist().index(7490000)
+                                       if 7490000 in catalog.idcultivo.tolist() else 0),
+                                key=f"siacon_{suffix}_cultivo")
+        # One crop has multiple recorded production units. Keep them separate.
+        units = siacon_catalog("cat_unidadmedida").set_index("idunidadmedida")
+        candidates = available.loc[
+            available.idcultivo == category, "idunidadmedida"].dropna().unique().tolist()
+        if len(candidates) > 1:
+            product = st.selectbox("Unidad de producción", sorted(candidates),
+                                   format_func=lambda key: str(units.loc[key, "nomunidad"]),
+                                   key=f"siacon_{suffix}_unidad")
+        else:
+            product = int(candidates[0])
+        unit_name = (str(units.loc[product, "nomcorto"]).strip() if product in units.index
+                     else "unidad de la fuente")
+        label = labels[category]
+    elif sector == "Ganadería":
+        available = siacon_available(sector, level)
+        species = siacon_catalog("cat_especie").loc[
+            lambda frame: frame.idespecie.isin(available.idespecie)].sort_values("ordenreporte")
+        labels = dict(zip(species.idespecie, species.nomespecie))
+        category = st.selectbox("Especie", species.idespecie.tolist(),
+                                format_func=lambda key: labels[key], key=f"siacon_{suffix}_especie")
+        products = siacon_catalog("cat_producto").loc[
+            lambda frame: (frame.idespecie == category) &
+            frame.idproducto.isin(available.loc[available.idespecie == category, "idproducto"])
+        ].sort_values("nomproducto")
+        product_labels = dict(zip(products.idproducto, products.nomproducto))
+        product = st.selectbox("Producto", products.idproducto.tolist(),
+                               format_func=lambda key: product_labels[key],
+                               key=f"siacon_{suffix}_producto")
+        unit_id = products.set_index("idproducto").loc[product, "idunidadmedida"]
+        units = siacon_catalog("cat_unidadmedida").set_index("idunidadmedida")
+        unit_name = (str(units.loc[unit_id, "nomcorto"]).strip() if unit_id in units.index
+                     else "unidad de la fuente")
+        label = f"{labels[category]} · {product_labels[product]}"
+    else:
+        available = siacon_available(sector, level)
+        species = siacon_catalog("cat_especiepesquero").loc[
+            lambda frame: frame.idespecie.isin(available.idespecie)].sort_values("nomespecie")
+        labels = dict(zip(species.idespecie, species.nomespecie))
+        category = st.selectbox("Especie", species.idespecie.tolist(),
+                                format_func=lambda key: labels[key],
+                                index=(species.idespecie.tolist().index(108000)
+                                       if 108000 in species.idespecie.tolist() else 0),
+                                key=f"siacon_{suffix}_pesca")
+        unit_name = "unidad registrada en SIACON"
+        label = labels[category]
+    metrics = SIACON_METRICS[sector]
+    metric_label = (list(metrics)[0] if compass else
+                    st.selectbox("Indicador", list(metrics), key=f"siacon_{suffix}_indicador"))
+    metric = metrics[metric_label]
+    if sector == "Agricultura":
+        unit_name = ("ha" if metric in {"sembrada", "cosechada", "siniestrada"}
+                     else "pesos" if metric == "valorproduccion" else unit_name)
+    elif sector == "Ganadería":
+        unit_name = ("pesos" if metric.startswith("valor") else
+                     "unidades de inventario" if metric == "inventario" else
+                     "cabezas" if metric == "numerocabezas" else unit_name)
+    elif metric == "valor":
+        unit_name = "unidad monetaria no indicada en la base"
+    if (metric == "inventario" and not series) or compass:
+        year = st.select_slider("Año", options=list(range(years[0], years[1] + 1)),
+                                value=years[1], key=f"siacon_{suffix}_anio")
+        first = last = year
+    else:
+        first, last = st.slider("Años", years[0], years[1],
+                                years if series else (years[1], years[1]),
+                                key=f"siacon_{suffix}_anios")
+    return dict(sector=sector, level=level, category=int(category), product=product,
+                metric=metric, metric_label=metric_label, first=first, last=last,
+                label=label, unit_name=unit_name)
+
+
+def siacon_values(choice: dict) -> pd.DataFrame:
+    annual = siacon_annual(choice["sector"], choice["level"], choice["category"],
+                           choice["product"], choice["metric"])
+    annual = annual.loc[annual.anio.between(choice["first"], choice["last"])]
+    return annual.groupby("cvegeo", as_index=False).agg(
+        valor=("valor", lambda values: values.sum() if values.notna().all() else np.nan))
+
+
+def render_siacon_map() -> None:
+    with st.sidebar:
+        choice = siacon_picker("mapa")
+        level = choice["level"]
+        state = crime_state_picker("siacon_mapa") if level == "municipal" else None
+        chosen = []
+        if state:
+            candidates = names("municipal").loc[lambda frame: frame.cve_ent == state]
+            labels = dict(zip(candidates.cvegeo, candidates.nombre))
+            chosen = st.multiselect("Buscar y marcar municipios", candidates.cvegeo.tolist(),
+                                    format_func=lambda key: f"{labels[key]} · {key}",
+                                    key=f"siacon_mapa_municipios_{state}")
+        method = st.selectbox("Método de clasificación", CLASSIFICATION_METHODS,
+                              key="siacon_mapa_metodo")
+        palette = st.selectbox("Paleta ColorBrewer", list(PALETTES),
+                               key="siacon_mapa_paleta")
+    if level == "municipal" and not state:
+        st.info("Elige un estado para mostrar sus municipios.")
+        return
+    with st.spinner("Consultando SIACON y preparando mapa…", show_time=True):
+        frame = names(level).merge(siacon_values(choice), on="cvegeo", how="left",
+                                   validate="one_to_one")
+        if state:
+            frame = frame.loc[frame.cve_ent == state]
+        if chosen:
+            frame = frame.loc[frame.cvegeo.isin(chosen)]
+        if level == "municipal" and os.getenv("CARTOGRAFUNK_MUNICIPAL_MAP", "deck").lower() != "pydeck":
+            colors, bands = classify(frame.set_index("cvegeo").valor, palette, method)
+            rows = [{"key": row.cvegeo, "color": colors[row.cvegeo],
+                     "name": row.nombre_completo, "value": format_value(row.valor, "conteo")}
+                    for row in frame.itertuples(index=False)]
+            use_component = True
+        else:
+            shapes = geometry(level)
+            if state:
+                shapes = [(key, geom) for key, geom in shapes if key.startswith(state)]
+            if chosen:
+                shapes = [(key, geom) for key, geom in shapes if key in chosen]
+            feature_collection, bands = map_features(shapes, frame, palette, "conteo", method)
+            use_component = False
+    st.subheader(f"{choice['label']} · {choice['first']}" +
+                 (f"–{choice['last']}" if choice["last"] != choice["first"] else ""))
+    st.caption(f"SIACON · {choice['sector']} · {choice['metric_label']} · {choice['unit_name']}. "
+               "Los valores de varios años son sumas de registros anuales; inventario muestra un solo año.")
+    if use_component:
+        MUNICIPAL_MAP(data={
+            "geometryUrl": "app/static/municipal_visual_1000m.json", "rows": rows,
+            "stateCode": state, "selectedKeys": chosen,
+            "revision": f"siacon:{choice}:{method}:{palette}:{state}:{','.join(chosen)}",
+            "debug": False,
+        }, key="siacon_municipal_map")
+    else:
+        layer = pdk.Layer("GeoJsonLayer", feature_collection, pickable=True,
+                          auto_highlight=True, stroked=True, filled=True,
+                          get_fill_color="properties.fill", get_line_color=[255, 255, 255, 230],
+                          line_width_min_pixels=0.75)
+        deck = CompactDeck(layers=[layer], initial_view_state=pdk.ViewState(
+            latitude=24, longitude=-102.5, zoom=2.8, pitch=0),
+            tooltip={"html": "<b>{nombre}</b><br>{cvegeo}<br>{valor}"}, map_style=None)
+        st.pydeck_chart(deck, width="stretch", height=400, key="siacon_mapa")
+    legend(bands, "conteo", "Sin datos SIACON")
+    shown = frame[["cvegeo", "nombre_completo", "valor"]].rename(
+        columns={"nombre_completo": "nombre", "valor": choice["metric_label"]})
+    st.dataframe(shown, hide_index=True, width="stretch")
+    st.download_button("Descargar CSV", shown.to_csv(index=False).encode("utf-8-sig"),
+                       file_name=f"cartografunk_siacon_{choice['sector']}_{level}_{choice['first']}_{choice['last']}.csv",
+                       mime="text/csv", key="siacon_mapa_descarga")
+
+
+def render_siacon_graph() -> None:
+    st.subheader("Evolución histórica")
+    with st.sidebar:
+        choice = siacon_picker("grafica", series=True)
+        state = crime_state_picker("siacon_grafica")
+        chosen = []
+        if state and choice["level"] == "municipal":
+            candidates = names("municipal").loc[lambda frame: frame.cve_ent == state]
+            labels = dict(zip(candidates.cvegeo, candidates.nombre))
+            chosen = st.multiselect("Buscar y marcar municipios", candidates.cvegeo.tolist(),
+                                    format_func=lambda key: f"{labels[key]} · {key}",
+                                    key=f"siacon_grafica_municipios_{state}")
+    if not state:
+        st.info("Elige un estado para ver su evolución histórica.")
+        return
+    with st.spinner("Consultando la serie histórica…", show_time=True):
+        annual = siacon_annual(choice["sector"], choice["level"], choice["category"],
+                               choice["product"], choice["metric"])
+    keys = chosen if chosen else [state] if choice["level"] == "estatal" else None
+    if keys is None:
+        annual = annual.loc[annual.cvegeo.str.startswith(state)]
+    else:
+        annual = annual.loc[annual.cvegeo.isin(keys)]
+    annual = annual.loc[annual.anio.between(choice["first"], choice["last"])]
+    frame = annual.groupby("anio", as_index=False).agg(
+        valor=("valor", lambda values: values.sum() if values.notna().all() else np.nan))
+    if frame.empty:
+        st.info("No hay registros para esta selección.")
+        return
+    st.caption(f"SIACON · {choice['sector']} · {choice['label']} · {choice['metric_label']} "
+               f"({choice['unit_name']}). Serie anual disponible: "
+               f"{SIACON_YEARS[choice['sector']][choice['level']][0]}–"
+               f"{SIACON_YEARS[choice['sector']][choice['level']][1]}.")
+    fig = px.line(frame, x="anio", y="valor", markers=True,
+                  labels={"anio": "Año", "valor": choice["metric_label"]})
+    fig.update_traces(hovertemplate="%{x}<br>%{y:,.2f}<extra></extra>")
+    st.plotly_chart(fig, width="stretch", key="siacon_serie")
+    st.dataframe(frame, hide_index=True, width="stretch")
+    st.download_button("Descargar CSV", frame.to_csv(index=False).encode("utf-8-sig"),
+                       file_name="cartografunk_siacon_serie.csv", mime="text/csv")
+
+
+def render_siacon_compass() -> None:
+    st.subheader("Compass · estados")
+    with st.sidebar:
+        choice = siacon_picker("compass", compass=True)
+        metrics = SIACON_METRICS[choice["sector"]]
+        x_label = st.selectbox("Eje X", list(metrics), key="siacon_compass_x")
+        y_label = st.selectbox("Eje Y", list(metrics),
+                               index=min(1, len(metrics) - 1), key="siacon_compass_y")
+        year = choice["first"]
+    def axis(metric_label: str) -> pd.DataFrame:
+        annual = siacon_annual(choice["sector"], "estatal", choice["category"],
+                               choice["product"], metrics[metric_label])
+        return annual.loc[annual.anio == year, ["cvegeo", "valor"]]
+    frame = names("estatal")[["cvegeo", "nombre", "abreviatura"]]
+    frame = frame.merge(axis(x_label).rename(columns={"valor": "x"}), on="cvegeo", how="left")
+    frame = frame.merge(axis(y_label).rename(columns={"valor": "y"}), on="cvegeo", how="left")
+    frame = frame.dropna(subset=["x", "y"])
+    if frame.empty:
+        st.info("No hay estados con valores para ambos ejes en ese año.")
+        return
+    x_cut, y_cut = frame.x.median(), frame.y.median()
+    frame["cuadrante"] = np.select([
+        (frame.x >= x_cut) & (frame.y >= y_cut),
+        (frame.x < x_cut) & (frame.y >= y_cut),
+        (frame.x < x_cut) & (frame.y < y_cut)],
+        ["Alto · Alto", "Bajo · Alto", "Bajo · Bajo"], default="Alto · Bajo")
+    fig = px.scatter(frame, x="x", y="y", text="abreviatura", hover_name="nombre",
+                     color="cuadrante", labels={"x": x_label, "y": y_label})
+    fig.add_vline(x=x_cut, line_dash="dash", line_color="#888")
+    fig.add_hline(y=y_cut, line_dash="dash", line_color="#888")
+    fig.update_traces(textposition="top center")
+    st.caption(f"SIACON · {choice['sector']} · {choice['label']} · {year}. "
+               "Los cortes son las medianas de los estados con datos en el año elegido.")
+    st.plotly_chart(fig, width="stretch", key="siacon_compass")
+    st.dataframe(frame[["cvegeo", "nombre", "x", "y", "cuadrante"]],
+                 hide_index=True, width="stretch")
+
+
 def main() -> None:
     st.set_page_config(
         page_title="Haz tu propio mapa · Cartografunk",
@@ -1352,23 +1688,29 @@ def main() -> None:
     st.markdown("<style>.block-container{padding-top:1.25rem}</style>", unsafe_allow_html=True)
     st.title("Haz tu propio mapa")
     with st.sidebar:
-        source = st.selectbox("Fuente", ["Censo 2020 · INEGI", "Delitos · SESNSP"],
+        source = st.selectbox("Fuente", ["Censo 2020 · INEGI", "Delitos · SESNSP",
+                                         "Producción agropecuaria y pesquera · SIACON"],
                               key="cartografunk_fuente")
     map_tab, graph_tab, compass_tab = st.tabs(["Mapa", "Gráfica", "Compass"], on_change="rerun")
     if map_tab.open:
         with map_tab:
-            render_crime_map() if source == "Delitos · SESNSP" else render_map()
+            (render_crime_map() if source == "Delitos · SESNSP" else
+             render_siacon_map() if source.startswith("Producción agropecuaria") else render_map())
     if graph_tab.open:
         with graph_tab:
-            render_crime_graph() if source == "Delitos · SESNSP" else render_graph()
+            (render_crime_graph() if source == "Delitos · SESNSP" else
+             render_siacon_graph() if source.startswith("Producción agropecuaria") else render_graph())
     if compass_tab.open:
         with compass_tab:
-            render_crime_compass() if source == "Delitos · SESNSP" else render_compass()
+            (render_crime_compass() if source == "Delitos · SESNSP" else
+             render_siacon_compass() if source.startswith("Producción agropecuaria") else render_compass())
     st.caption(
         "Fuentes: Datos y geografía: Censo de Población y Vivienda INEGI "
         "(2020) y Marco Geoestadístico Nacional INEGI (2025). "
         "Incidencia delictiva y víctimas del fuero común: SESNSP, nueva metodología "
         "(registro 2015–2025, descarga con corte de septiembre de 2026). "
+        "Producción agrícola, pecuaria y pesquera: SIACON, copia local con datos hasta 2024 "
+        "(pesca hasta 2018). "
         "Paletas: ColorBrewer 2.0."
     )
 
