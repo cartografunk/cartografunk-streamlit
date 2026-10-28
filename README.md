@@ -1,6 +1,8 @@
 # Cartografunk · Explorador público
 
-Aplicación Streamlit para consultar indicadores del Censo 2020/SCINCE, registros del fuero común del SESNSP (2015–2025), producción agrícola, pecuaria y pesquera de SIACON y Defunciones Registradas del INEGI (2012–2024). Incluye mapa, gráfica, tabla, descarga CSV y compass estatal. No utiliza Supabase ni login.
+Aplicación Streamlit para consultar indicadores del Censo 2020/SCINCE, registros del fuero común del SESNSP (2015–2025), producción agrícola, pecuaria y pesquera de SIACON, Defunciones Registradas del INEGI (2012–2024) y elecciones federales del INE (2024). Incluye mapa, gráfica, tabla, descarga CSV y compass. No utiliza Supabase ni login.
+
+En **Fuente → Elecciones federales · INE** se consultan Presidencia, Diputaciones federales de mayoría relativa y Senadurías de mayoría relativa de 2024 por estado o distrito federal. Los 300 polígonos distritales vienen del MGE 2024 y tienen una copia simplificada de visualización; la geometría original permanece en el archivo fuente. Presidencia y Senadurías registran voto en el extranjero bajo distrito 00; esos registros no tienen polígono y se guardan aparte. Los resultados de casilla tienen claves de casilla, pero no contamos con coordenadas o puntos de casilla para dibujarlas. Los distritos locales y las secciones del MGE no se usan en esta primera integración. `data/ine/catalogo_fuentes.json` documenta los ZIP de entrada y los archivos publicados con SHA-256.
 
 ## Fuente EDR
 
@@ -62,4 +64,4 @@ git push -u origin main
 
 ## Atribuciones
 
-Fuentes: Censo de Población y Vivienda INEGI (2020), Marco Geoestadístico Nacional INEGI (2025), incidencia delictiva y víctimas del fuero común SESNSP (descarga con corte de septiembre de 2026), producción agrícola, pecuaria y pesquera SIACON (copia local con datos hasta 2024; pesca hasta 2018), Defunciones Registradas INEGI (2012–2024). Paletas: ColorBrewer 2.0. Estas atribuciones también se muestran dentro de la app.
+Fuentes: Censo de Población y Vivienda INEGI (2020), Marco Geoestadístico Nacional INEGI (2025), incidencia delictiva y víctimas del fuero común SESNSP (descarga con corte de septiembre de 2026), producción agrícola, pecuaria y pesquera SIACON (copia local con datos hasta 2024; pesca hasta 2018), Defunciones Registradas INEGI (2012–2024), resultados electorales SICEE y MGE 2024 del INE. Paletas: ColorBrewer 2.0. Estas atribuciones también se muestran dentro de la app.

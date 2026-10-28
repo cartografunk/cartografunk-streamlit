@@ -1967,6 +1967,159 @@ def render_edr_compass() -> None:
                  hide_index=True, width="stretch")
 
 
+INE_CONTESTS = ["Presidencia", "Diputaciones federales MR", "Senadurías MR"]
+INE_METRICS = {
+    "Participación (%)": ("participacion_pct", "porcentaje"),
+    "Votos totales": ("total_votos", "conteo"),
+    "Votos válidos": ("num_votos_validos", "conteo"),
+    "Votos nulos": ("num_votos_nulos", "conteo"),
+    "Votos nulos (%)": ("votos_nulos_pct", "porcentaje"),
+    "Lista nominal": ("lista_nominal", "conteo"),
+}
+
+
+@st.cache_data(show_spinner=False)
+def ine_results(level: str, contest: str) -> pd.DataFrame:
+    filename = "estatal_2024.parquet" if level == "estatal" else "distrito_federal_2024.parquet"
+    frame = pd.read_parquet(DATA / "ine" / filename)
+    return frame.loc[frame.eleccion.eq(contest)].reset_index(drop=True)
+
+
+@st.cache_data(show_spinner=False)
+def ine_named(level: str, contest: str) -> pd.DataFrame:
+    frame = ine_results(level, contest).copy()
+    states = names("estatal")[["cvegeo", "nombre"]].rename(
+        columns={"cvegeo": "cve_ent", "nombre": "estado"})
+    frame["cve_ent"] = frame.cvegeo.str[:2]
+    frame = frame.merge(states, on="cve_ent", how="left", validate="many_to_one")
+    if level == "estatal":
+        frame["nombre_completo"] = frame.estado
+    else:
+        frame["nombre_completo"] = ("Distrito " + frame.cvegeo.str[2:]
+                                    + " · " + frame.cabecera.fillna("Sin cabecera")
+                                    + ", " + frame.estado)
+    return frame
+
+
+def ine_picker(suffix: str) -> tuple[str, str, str, str, str, str, str | None]:
+    level_label = st.selectbox("Nivel", ["Estado", "Distrito federal"], key=f"ine_{suffix}_nivel")
+    level = "estatal" if level_label == "Estado" else "distrito_federal"
+    state = None
+    if level == "distrito_federal":
+        states = names("estatal").sort_values("nombre")
+        labels = dict(zip(states.cvegeo, states.nombre))
+        selected = st.selectbox("Filtro por estado", ["", *states.cvegeo.tolist()],
+                                format_func=lambda key: labels.get(key, "Todos los estados"),
+                                key=f"ine_{suffix}_estado")
+        state = selected or None
+    contest = st.selectbox("Elección", INE_CONTESTS, key=f"ine_{suffix}_eleccion")
+    metric_label = st.selectbox("Medida", list(INE_METRICS), key=f"ine_{suffix}_medida")
+    metric, unit = INE_METRICS[metric_label]
+    return level, level_label, contest, metric, metric_label, unit, state
+
+
+def render_ine_map() -> None:
+    with st.sidebar:
+        level, level_label, contest, metric, metric_label, unit, state = ine_picker("mapa")
+        method = st.selectbox("Método de clasificación", CLASSIFICATION_METHODS,
+                              key="ine_mapa_metodo")
+        palette = st.selectbox("Paleta ColorBrewer", list(PALETTES), key="ine_mapa_paleta")
+    with st.spinner("Consultando resultados del INE y preparando mapa…", show_time=True):
+        frame = ine_named(level, contest)
+        if state:
+            frame = frame.loc[frame.cve_ent.eq(state)].copy()
+        frame["valor"] = frame[metric]
+        colors, bands = classify(frame.set_index("cvegeo").valor, palette, method)
+        if level == "distrito_federal":
+            rows = [{"key": row.cvegeo, "color": colors[row.cvegeo],
+                     "name": row.nombre_completo, "value": format_value(row.valor, unit)}
+                    for row in frame.itertuples(index=False)]
+        else:
+            shapes = geometry("estatal")
+            feature_collection, bands = map_features(shapes, frame, palette, unit, method)
+    st.subheader(f"{contest} · 2024")
+    st.caption(f"INE · SICEE · {level_label} · {metric_label}. "
+               "Los distritos federales corresponden al MGE 2024.")
+    if level == "distrito_federal":
+        MUNICIPAL_MAP(data={
+            "geometryUrl": "app/static/distritos_federales_2024.json",
+            "rows": rows, "stateCode": state, "selectedKeys": [],
+            "revision": f"ine:{contest}:{metric}:{method}:{palette}:{state}", "debug": False,
+        }, key="ine_distrito_mapa")
+    else:
+        layer = pdk.Layer("GeoJsonLayer", feature_collection, pickable=True,
+                          auto_highlight=True, stroked=True, filled=True,
+                          get_fill_color="properties.fill", get_line_color=[255, 255, 255, 230],
+                          line_width_min_pixels=0.75)
+        deck = CompactDeck(layers=[layer], initial_view_state=pdk.ViewState(
+            latitude=24, longitude=-102.5, zoom=2.8, pitch=0),
+            tooltip={"html": "<b>{nombre}</b><br>{cvegeo}<br>{valor}"}, map_style=None)
+        st.pydeck_chart(deck, width="stretch", height=400, key="ine_estado_mapa")
+    legend(bands, unit, "Sin resultado")
+    st.caption("La participación es votos totales ÷ lista nominal; los nulos (%) son "
+               "votos nulos ÷ votos totales. En Presidencia y Senadurías, los "
+               "resultados del voto en el extranjero no se asignan a un polígono distrital.")
+    shown = frame[["cvegeo", "nombre_completo", metric]].rename(
+        columns={"nombre_completo": "nombre", metric: metric_label})
+    st.dataframe(shown, hide_index=True, width="stretch")
+    st.download_button("Descargar CSV", shown.to_csv(index=False).encode("utf-8-sig"),
+                       file_name=f"cartografunk_ine_2024_{level}_{metric}.csv",
+                       mime="text/csv", key="ine_mapa_descarga")
+
+
+def render_ine_graph() -> None:
+    with st.sidebar:
+        level, level_label, contest, metric, metric_label, unit, state = ine_picker("grafica")
+        orientation = st.selectbox("Orientación", ["Horizontal", "Vertical"],
+                                   key="ine_grafica_orientacion")
+    frame = ine_named(level, contest)
+    if state:
+        frame = frame.loc[frame.cve_ent.eq(state)]
+    frame = frame.sort_values(metric, ascending=False)
+    st.subheader(f"{metric_label} · {contest} · 2024")
+    st.caption(f"INE · SICEE · {level_label}. Comparación territorial de una elección; "
+               "esta vista no representa una serie histórica.")
+    if orientation == "Horizontal":
+        fig = px.bar(frame, x=metric, y="nombre_completo", orientation="h",
+                     hover_data=["cvegeo"], labels={metric: metric_label,
+                                                     "nombre_completo": "Geografía"})
+        fig.update_layout(yaxis={"categoryorder": "total ascending"})
+    else:
+        fig = px.bar(frame, x="nombre_completo", y=metric,
+                     hover_data=["cvegeo"], labels={metric: metric_label,
+                                                     "nombre_completo": "Geografía"})
+    st.plotly_chart(fig, width="stretch", key="ine_grafica")
+    st.dataframe(frame[["cvegeo", "nombre_completo", metric]], hide_index=True,
+                 width="stretch")
+
+
+def render_ine_compass() -> None:
+    with st.sidebar:
+        level = st.selectbox("Nivel", ["Estado", "Distrito federal"], key="ine_compass_nivel")
+        contest = st.selectbox("Elección", INE_CONTESTS, key="ine_compass_eleccion")
+    frame = ine_named("estatal" if level == "Estado" else "distrito_federal", contest)
+    x_cut = frame.participacion_pct.median()
+    y_cut = frame.votos_nulos_pct.median()
+    frame["cuadrante"] = np.select([
+        (frame.participacion_pct >= x_cut) & (frame.votos_nulos_pct >= y_cut),
+        (frame.participacion_pct < x_cut) & (frame.votos_nulos_pct >= y_cut),
+        (frame.participacion_pct < x_cut) & (frame.votos_nulos_pct < y_cut)],
+        ["Alta · Alta", "Baja · Alta", "Baja · Baja"], default="Alta · Baja")
+    st.subheader(f"Participación y voto nulo · {contest} · 2024")
+    st.caption("INE · SICEE. Cortes: medianas de las unidades mostradas. "
+               "Cada punto es un estado o distrito federal, según el nivel.")
+    fig = px.scatter(frame, x="participacion_pct", y="votos_nulos_pct",
+                     hover_name="nombre_completo", color="cuadrante",
+                     hover_data=["cvegeo"],
+                     labels={"participacion_pct": "Participación (%)",
+                             "votos_nulos_pct": "Votos nulos (%)"})
+    fig.add_vline(x=x_cut, line_dash="dash", line_color="#888")
+    fig.add_hline(y=y_cut, line_dash="dash", line_color="#888")
+    st.plotly_chart(fig, width="stretch", key="ine_compass")
+    st.dataframe(frame[["cvegeo", "nombre_completo", "participacion_pct",
+                        "votos_nulos_pct", "cuadrante"]], hide_index=True, width="stretch")
+
+
 def main() -> None:
     st.set_page_config(
         page_title="Haz tu propio mapa · Cartografunk",
@@ -1979,24 +2132,28 @@ def main() -> None:
     with st.sidebar:
         source = st.selectbox("Fuente", ["Censo 2020 · INEGI", "Delitos · SESNSP",
                                          "Producción agropecuaria y pesquera · SIACON",
-                                         "Defunciones registradas · INEGI"],
+                                         "Defunciones registradas · INEGI",
+                                         "Elecciones federales · INE"],
                               key="cartografunk_fuente")
     map_tab, graph_tab, compass_tab = st.tabs(["Mapa", "Gráfica", "Compass"], on_change="rerun")
     if map_tab.open:
         with map_tab:
             (render_crime_map() if source == "Delitos · SESNSP" else
              render_siacon_map() if source.startswith("Producción agropecuaria") else
-             render_edr_map() if source.startswith("Defunciones registradas") else render_map())
+             render_edr_map() if source.startswith("Defunciones registradas") else
+             render_ine_map() if source.startswith("Elecciones federales") else render_map())
     if graph_tab.open:
         with graph_tab:
             (render_crime_graph() if source == "Delitos · SESNSP" else
              render_siacon_graph() if source.startswith("Producción agropecuaria") else
-             render_edr_graph() if source.startswith("Defunciones registradas") else render_graph())
+             render_edr_graph() if source.startswith("Defunciones registradas") else
+             render_ine_graph() if source.startswith("Elecciones federales") else render_graph())
     if compass_tab.open:
         with compass_tab:
             (render_crime_compass() if source == "Delitos · SESNSP" else
              render_siacon_compass() if source.startswith("Producción agropecuaria") else
-             render_edr_compass() if source.startswith("Defunciones registradas") else render_compass())
+             render_edr_compass() if source.startswith("Defunciones registradas") else
+             render_ine_compass() if source.startswith("Elecciones federales") else render_compass())
     st.caption(
         "Fuentes: Datos y geografía: Censo de Población y Vivienda INEGI "
         "(2020) y Marco Geoestadístico Nacional INEGI (2025). "
@@ -2005,6 +2162,7 @@ def main() -> None:
         "Producción agrícola, pecuaria y pesquera: SIACON, copia local con datos hasta 2024 "
         "(pesca hasta 2018). "
         "Defunciones Registradas: INEGI (2012–2024, año de registro y residencia habitual). "
+        "Elecciones federales 2024 y distritos federales: INE (SICEE y MGE 2024). "
         "Paletas: ColorBrewer 2.0."
     )
 

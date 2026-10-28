@@ -32956,7 +32956,7 @@ function YL(e) {
 			getTooltip: ({ object: e }) => {
 				if (!e) return null;
 				let t = e.properties.cvegeo, n = r.values.get(t);
-				return { text: `${n?.name || t}\n${t}\n${n?.value || "Sin CPV"}` };
+				return { text: `${n?.name || t}\n${t}\n${n?.value || "Sin datos"}` };
 			},
 			onAfterRender: () => {
 				if (!r.pending || r.lastReported === r.pending.revision) return;
@@ -32970,7 +32970,7 @@ function YL(e) {
 				width: i.clientWidth,
 				height: i.clientHeight
 			});
-		}), r.resizeObserver.observe(i), GL.set(t, r), r.fetches += 1, a.hidden = !1, a.textContent = "Cargando geometría municipal…", fetch(n.geometryUrl).then((e) => {
+		}), r.resizeObserver.observe(i), GL.set(t, r), r.fetches += 1, a.hidden = !1, a.textContent = "Cargando geometría…", fetch(n.geometryUrl).then((e) => {
 			if (!e.ok) throw Error(`Geometría HTTP ${e.status}`);
 			return e.json();
 		}).then((e) => {

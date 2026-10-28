@@ -1,0 +1,33 @@
+{
+  "fuentes": "INE SICEE, resultados federales 2024; INE MGE 2024",
+  "clave_distrital": "ID_ESTADO de 2 dígitos + ID_DISTRITO_FEDERAL de 2 dígitos",
+  "nota": "El distrito 00 registra voto en el extranjero y no se dibuja. La geometría de visualización se simplificó por polígono a 500 m en EPSG:32614.",
+  "entradas": {
+    "PRESIDENCIA_2024.zip": "3122304d4dec2a24168708af9836f5df2860ac4347163dc311473bd037737bbf",
+    "DIPUTACIONES_FED_MR_2024.zip": "9da21ef4e7ed7f490d3351c4834c4cea0bff050699d9d4ebf45f902e333cc61c",
+    "SENADURÍAS_MR_2024.zip": "bafa39ae21279f229a3892422d8b9fb339160bc92a17c9a3583c92c1154c19cf",
+    "MGE 2024-20240515T221823Z-001.zip": "e5d07e6c723adef2e20572f9d467917ba6dada5aa75b83cc4ac1c97972780bfc"
+  },
+  "salidas": {
+    "data/ine/estatal_2024.parquet": {
+      "bytes": 9487,
+      "sha256": "28d9786068876e78836b6a0862a4f41246ab95c25a970c61449427071881406b"
+    },
+    "data/ine/distrito_federal_2024.parquet": {
+      "bytes": 37703,
+      "sha256": "8c22f01e4d2bcd40454ab4aa0024464a54db725ea45f769e50cc138a3b64a3ff"
+    },
+    "data/ine/voto_extranjero_2024.parquet": {
+      "bytes": 8235,
+      "sha256": "9394d8c8fa57c4530b57575986a2b61ff2042f6944ba36cdbf1d719fc1bcbefe"
+    },
+    "data/geometria/distritos_federales_2024_visual.parquet": {
+      "bytes": 595809,
+      "sha256": "4c543e83228dece5f86b88adb1ed11ba76333708454227132419ae1add3da25f"
+    },
+    "static/distritos_federales_2024.json": {
+      "bytes": 1846395,
+      "sha256": "a91422cd975c46a1778621a36769befcf7f9803fb1eb677ecf09fe368cb169b3"
+    }
+  }
+}
