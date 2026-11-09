@@ -22,15 +22,30 @@ from electoral.diagnostico_casillas_tab import (
 from electoral.reparto_ieeq import PARTIDOS_COMUNES
 
 
-COLOR_CERCANA = [248, 170, 74, 220]
-COLOR_DEFENSA = [72, 187, 211, 220]
-COLOR_FORTALEZA = [102, 192, 138, 210]
-COLOR_BASE = [158, 155, 170, 180]
-COLOR_SECCION_AMPLIA = [29, 176, 127, 105]
-COLOR_SECCION_CORTA = [52, 177, 230, 105]
-COLOR_SECCION_CERCANA = [242, 158, 62, 120]
-COLOR_SECCION_LEJANA = [116, 137, 164, 60]
-COLOR_SECCION_SIN_DATO = [110, 130, 160, 55]
+GRUPOS_CPV = {
+    "Población": ("pct_mujeres", "pct_menores_18", "pct_60_mas", "pct_18_24",
+                  "pct_lengua_indigena", "pct_afromexicana"),
+    "Educación": ("pct_analfabeta", "pct_posbasica"),
+    "Trabajo y salud": ("pct_pea", "pct_sin_salud"),
+    "Vivienda y servicios": ("pct_piso_tierra", "pct_sin_agua", "pct_sin_drenaje"),
+    "Tecnología y movilidad": ("pct_internet", "pct_automovil"),
+}
+
+
+# ColorBrewer RdYlBu (orden azul → amarillo → rojo), con gris reservado
+# para las casillas o secciones sin resultado.
+COLOR_FORTALEZA = [44, 123, 182, 235]    # #2c7bb6
+COLOR_DEFENSA = [171, 217, 233, 235]     # #abd9e9
+COLOR_EMPATE = [255, 255, 191, 235]      # #ffffbf
+COLOR_CERCANA = [253, 174, 97, 235]     # #fdae61
+COLOR_BASE = [215, 25, 28, 235]         # #d7191c
+COLOR_SIN_DATO = [150, 160, 174, 190]
+COLOR_SECCION_AMPLIA = [*COLOR_FORTALEZA[:3], 135]
+COLOR_SECCION_CORTA = [*COLOR_DEFENSA[:3], 135]
+COLOR_SECCION_EMPATE = [*COLOR_EMPATE[:3], 135]
+COLOR_SECCION_CERCANA = [*COLOR_CERCANA[:3], 140]
+COLOR_SECCION_LEJANA = [*COLOR_BASE[:3], 135]
+COLOR_SECCION_SIN_DATO = [*COLOR_SIN_DATO[:3], 75]
 CLASES_CERCANAS = ("perdida_competitiva", "ganada_ajustada", "empate")
 NOMBRES_CLASE = {
     "ganada_solida": "Ventaja amplia", "ganada_ajustada": "Ventaja estrecha",
@@ -66,12 +81,16 @@ def preparar_sedes(casillas: pd.DataFrame, puntos: pd.DataFrame) -> pd.DataFrame
         clases = set(grupo.CLASE)
         if "perdida_competitiva" in clases:
             senal, color = "Pérdida cercana", COLOR_CERCANA
-        elif "ganada_ajustada" in clases or "empate" in clases:
-            senal, color = "Ventaja estrecha o empate", COLOR_DEFENSA
+        elif "empate" in clases:
+            senal, color = "Empate", COLOR_EMPATE
+        elif "ganada_ajustada" in clases:
+            senal, color = "Ventaja estrecha", COLOR_DEFENSA
         elif "ganada_solida" in clases:
             senal, color = "Ventaja amplia observada", COLOR_FORTALEZA
+        elif "perdida_lejana" in clases:
+            senal, color = "Pérdida lejana", COLOR_BASE
         else:
-            senal, color = "Otro resultado", COLOR_BASE
+            senal, color = "Sin resultado", COLOR_SIN_DATO
         casillas_sitio = sorted(grupo.CASILLA_ETIQUETA)
         filas.append({"ID_SECCION": seccion, "LATITUD": float(lat), "LONGITUD": float(lon),
                       "CASILLAS": ", ".join(casillas_sitio), "CASILLA_INICIAL": casillas_sitio[0],
@@ -102,11 +121,13 @@ def _capa_secciones(base: pd.DataFrame, geometrias: dict[str, dict]) -> dict:
         margen = fila.MARGEN_PP
         if pd.isna(margen):
             color = COLOR_SECCION_SIN_DATO
-        elif margen >= 5:
+        elif margen >= 10:
             color = COLOR_SECCION_AMPLIA
-        elif margen >= 0:
+        elif margen > 0:
             color = COLOR_SECCION_CORTA
-        elif margen >= -5:
+        elif margen == 0:
+            color = COLOR_SECCION_EMPATE
+        elif margen >= -10:
             color = COLOR_SECCION_CERCANA
         else:
             color = COLOR_SECCION_LEJANA
@@ -127,16 +148,20 @@ def _mostrar_leyenda_mapa() -> None:
                 f'{etiqueta}</span>')
 
     secciones = "".join((
-        item(COLOR_SECCION_AMPLIA, "Ventaja ≥5 pp", "seccion"),
-        item(COLOR_SECCION_CORTA, "Ventaja 0–5", "seccion"),
-        item(COLOR_SECCION_CERCANA, "Derrota 0–5", "seccion"),
-        item(COLOR_SECCION_LEJANA, "Derrota &gt;5 / s. d.", "seccion"),
+        item(COLOR_SECCION_AMPLIA, "Ventaja amplia ≥10 pp", "seccion"),
+        item(COLOR_SECCION_CORTA, "Ventaja estrecha &lt;10 pp", "seccion"),
+        item(COLOR_SECCION_EMPATE, "Empate", "seccion"),
+        item(COLOR_SECCION_CERCANA, "Pérdida cercana ≤10 pp", "seccion"),
+        item(COLOR_SECCION_LEJANA, "Pérdida lejana &gt;10 pp", "seccion"),
+        item(COLOR_SECCION_SIN_DATO, "Sin resultado", "seccion"),
     ))
     sedes = "".join((
         item(COLOR_FORTALEZA, "Ventaja amplia", "sede"),
-        item(COLOR_DEFENSA, "Ventaja corta / empate", "sede"),
-        item(COLOR_CERCANA, "Derrota cercana", "sede"),
-        item(COLOR_BASE, "Otro", "sede"),
+        item(COLOR_DEFENSA, "Ventaja estrecha", "sede"),
+        item(COLOR_EMPATE, "Empate", "sede"),
+        item(COLOR_CERCANA, "Pérdida cercana", "sede"),
+        item(COLOR_BASE, "Derrota lejana", "sede"),
+        item(COLOR_SIN_DATO, "Sin resultado", "sede"),
     ))
     st.html(f"""
     <style>
@@ -311,7 +336,7 @@ def _patron(base: pd.DataFrame, puntos: pd.DataFrame) -> None:
             _mostrar_ficha_casilla(fila.iloc[0], base)
 
 
-def _perfil(base: pd.DataFrame) -> None:
+def _perfil(base: pd.DataFrame, partido: str) -> None:
     _cabecera_pregunta(
         2, "¿Por qué aparece ese resultado?",
         "Comparamos rasgos censales de las secciones de cada clase. Estos contrastes sugieren dónde investigar; no explican la causa del voto individual.",
@@ -320,12 +345,16 @@ def _perfil(base: pd.DataFrame) -> None:
         "CPV 2020 vs votos 2024 · asociación, no causa.")
     perfil = perfil_cpv(base, max_frases=3)
     tabla = perfil["tabla"]
+    st.caption(f"{partido}: se comparan 15 rasgos del CPV 2020; se muestran hasta cinco por grupo.")
+    grupo = st.selectbox("Grupo de rasgos CPV", ["Todos", *GRUPOS_CPV],
+                         key="dashboard_grupo_cpv")
     objetivo = st.selectbox("Comparar con pérdida lejana", ["perdida_competitiva", "ganada_solida"],
-                            format_func=lambda x: "Pérdida cercana" if x == "perdida_competitiva" else "Victoria sólida",
+                            format_func=lambda x: "Pérdida cercana" if x == "perdida_competitiva" else "Ventaja amplia",
                             key="dashboard_clase_perfil")
     diferencia = f"dif_est_{objetivo}_vs_perdida_lejana"
     columnas = ["etiqueta", f"media_{objetivo}", "media_perdida_lejana", diferencia]
-    top = tabla[columnas].dropna(subset=[diferencia]).copy()
+    candidatas = tabla if grupo == "Todos" else tabla.loc[tabla.variable.isin(GRUPOS_CPV[grupo])]
+    top = candidatas[columnas].dropna(subset=[diferencia]).copy()
     top = top.reindex(top[diferencia].abs().sort_values(ascending=False).index).head(5)
     if top.empty:
         st.info("No hay suficientes secciones comparables para este contraste.")
@@ -334,7 +363,7 @@ def _perfil(base: pd.DataFrame) -> None:
                f"y {perfil['n_secciones_por_clase'].get('perdida_lejana', 0)} en pérdida lejana.")
     izquierda, derecha = st.columns([1, 1], gap="medium")
     with izquierda:
-        st.markdown("**Las cinco mayores diferencias estandarizadas**")
+        st.markdown(f"**{len(top)} mayores diferencias estandarizadas · {grupo.lower()}**")
         grafica = top[["etiqueta", diferencia]].rename(columns={"etiqueta": "Rasgo", diferencia: "Diferencia"})
         chart = alt.Chart(grafica).mark_bar(color="#F8AA4A").encode(
             x=alt.X("Diferencia:Q", title="Diferencia estandarizada"),
@@ -350,7 +379,7 @@ def _perfil(base: pd.DataFrame) -> None:
             delta = getattr(fila, diferencia)
             direccion = "mayor" if delta > 0 else "menor"
             st.write(f"{fila.etiqueta}: proporción {direccion} en secciones de "
-                     f"{'pérdida cercana' if objetivo == 'perdida_competitiva' else 'victoria sólida'}.")
+                     f"{'pérdida cercana' if objetivo == 'perdida_competitiva' else 'ventaja amplia'}.")
     st.dataframe(top.rename(columns={"etiqueta": "Rasgo", f"media_{objetivo}": "Clase elegida (%)",
                                      "media_perdida_lejana": "Pérdida lejana (%)",
                                      diferencia: "Diferencia estandarizada"}),
@@ -361,6 +390,15 @@ def _perfil(base: pd.DataFrame) -> None:
                  alt="Promedios CPV y diferencia de las cinco variables principales")
     st.caption("El CPV describe residentes de la sección; no revela cómo votaron personas o grupos. "
                "Una casilla E recibe contexto de sección, no un perfil propio de su área de atención.")
+    with st.expander("Avanzado · los 15 rasgos CPV", on_change="rerun") as avanzado:
+        if avanzado.open:
+            st.dataframe(tabla[columnas].rename(columns={
+                "etiqueta": "Rasgo", f"media_{objetivo}": "Clase elegida (%)",
+                "media_perdida_lejana": "Pérdida lejana (%)",
+                diferencia: "Diferencia estandarizada",
+            }), hide_index=True, width="stretch")
+            st.caption("Es un contraste descriptivo por partido, no un modelo de ML. "
+                       "El ensayo de ML con CPV se resume en la pregunta 03.")
 
 
 def _historia(root: Path, partido: str) -> None:
@@ -470,21 +508,107 @@ def _accion(base: pd.DataFrame, puntos: pd.DataFrame, partido: str) -> None:
         "APOYO_MINIMO_FEDERAL_2024_PCT": "Apoyo mínimo 2024 (%)",
         "COSTO_HIPOTETICO": "Costo supuesto (MXN)", "SEDE_EN_MAPA": "Sede en mapa",
     })
-    st.caption("Selecciona una fila para ver el motivo, la sede 2024, el polígono y las demás casillas de su sección.")
-    evento = st.dataframe(
-        tabla, hide_index=True, width="stretch", height=440,
-        on_select="rerun", selection_mode="single-row",
-        key=f"dashboard_tabla_accion_{partido}_{motivo}_{buscar.strip().upper()}",
-        column_config={"Sección": st.column_config.TextColumn(pinned=True),
-                       "Casilla": st.column_config.TextColumn(pinned=True),
-                       "Apoyo mínimo 2024 (%)": st.column_config.NumberColumn(format="%.1f"),
-                       "Costo supuesto (MXN)": st.column_config.NumberColumn(format="%.0f")},
-        alt="Casillas con motivo de revisión, distancia en votos, abstención y sede")
+    seleccion = st.session_state.get("dashboard_accion_seleccionada")
+    if seleccion and not ((vista.ID_SECCION.eq(seleccion[0])
+                           & vista.CASILLA_ETIQUETA.eq(seleccion[1])).any()):
+        seleccion = None
+        st.session_state["dashboard_accion_seleccionada"] = None
+    geometrias = _geometrias_seccion(
+        Path(__file__).resolve().parents[1] / "data/electoral/secciones_2024_geom.parquet")
+    sedes = preparar_sedes(vista, puntos)
+    izquierda, derecha = st.columns([1.15, 1], gap="medium")
+    with izquierda:
+        st.markdown("**Mapa de casillas para revisar**")
+        _mostrar_leyenda_mapa()
+        capas = []
+        secciones_mapa = _capa_secciones(vista, geometrias)
+        if secciones_mapa["features"]:
+            capas.append(pdk.Layer(
+                "GeoJsonLayer", id="secciones_esfuerzo", data=secciones_mapa,
+                pickable=True, filled=True, stroked=True,
+                get_fill_color="properties.COLOR", get_line_color=[80, 194, 226, 145],
+                line_width_min_pixels=1))
+        if not sedes.empty:
+            capas.append(pdk.Layer(
+                "ScatterplotLayer", id="sedes_esfuerzo", data=sedes.to_dict("records"),
+                get_position="[LONGITUD, LATITUD]", get_radius=45,
+                radius_min_pixels=3, radius_max_pixels=8, get_fill_color="COLOR",
+                get_line_color=[22, 20, 30, 255], line_width_min_pixels=1,
+                stroked=True, pickable=True))
+        punto = None
+        if seleccion:
+            coincide = puntos.loc[puntos.ID_SECCION.eq(seleccion[0])
+                                  & puntos.CASILLA_ETIQUETA.eq(seleccion[1])]
+            if not coincide.empty:
+                punto = coincide.iloc[0]
+                capas.append(pdk.Layer(
+                    "ScatterplotLayer", id="seleccion_esfuerzo", pickable=False,
+                    data=[{"LONGITUD": float(punto.LONGITUD),
+                           "LATITUD": float(punto.LATITUD)}],
+                    get_position="[LONGITUD, LATITUD]", get_radius=110,
+                    radius_min_pixels=12, radius_max_pixels=20,
+                    get_fill_color=[255, 255, 255, 45],
+                    get_line_color=[255, 255, 255, 255],
+                    line_width_min_pixels=3, stroked=True))
+        lat, lon, zoom = 20.64, -100.31, 9.2
+        if punto is not None:
+            lat, lon, zoom = float(punto.LATITUD), float(punto.LONGITUD), 13.5
+        elif seleccion and seleccion[0] in geometrias:
+            centro = shape(geometrias[seleccion[0]]).centroid
+            lat, lon, zoom = centro.y, centro.x, 12.5
+        if capas:
+            evento_mapa = st.pydeck_chart(
+                pdk.Deck(layers=capas, map_style=pdk.map_styles.CARTO_DARK,
+                         initial_view_state=pdk.ViewState(latitude=lat, longitude=lon, zoom=zoom),
+                         tooltip={"text": "Sección {ID_SECCION}\nCasillas {CASILLAS}\n{SENAL}"}),
+                height=440, on_select="rerun", selection_mode="single-object",
+                key=f"dashboard_mapa_esfuerzo_{partido}_{motivo}_{buscar.strip().upper()}_{seleccion}",
+                alt="Sedes y secciones de las casillas para revisar")
+            objetos = evento_mapa.selection.objects.get("sedes_esfuerzo", [])
+            if objetos:
+                elegido = (str(objetos[0]["ID_SECCION"]), str(objetos[0]["CASILLA_INICIAL"]))
+                if elegido != seleccion:
+                    st.session_state["dashboard_accion_seleccionada"] = elegido
+                    st.rerun()
+            secciones_elegidas = evento_mapa.selection.objects.get("secciones_esfuerzo", [])
+            if secciones_elegidas:
+                objeto = secciones_elegidas[0]
+                clave = str(objeto.get("properties", {}).get("ID_SECCION")
+                            or objeto.get("ID_SECCION", ""))
+                filas = vista.loc[vista.ID_SECCION.eq(clave)]
+                if not filas.empty:
+                    elegido = (str(filas.iloc[0].ID_SECCION), str(filas.iloc[0].CASILLA_ETIQUETA))
+                    if elegido != seleccion:
+                        st.session_state["dashboard_accion_seleccionada"] = elegido
+                        st.rerun()
+        else:
+            st.info("No hay geometrías ni sedes para estas casillas.")
+    with derecha:
+        st.markdown("**Casillas del filtro**")
+        st.caption("Selecciona una fila o un punto para ubicar la casilla y abrir su ficha.")
+        evento = st.dataframe(
+            tabla, hide_index=True, width="stretch", height=440,
+            on_select="rerun", selection_mode="single-row",
+            key=f"dashboard_tabla_accion_{partido}_{motivo}_{buscar.strip().upper()}",
+            column_config={"Sección": st.column_config.TextColumn(pinned=True),
+                           "Casilla": st.column_config.TextColumn(pinned=True),
+                           "Apoyo mínimo 2024 (%)": st.column_config.NumberColumn(format="%.1f"),
+                           "Costo supuesto (MXN)": st.column_config.NumberColumn(format="%.0f")},
+            alt="Casillas con motivo de revisión, distancia en votos, abstención y sede")
     st.download_button("Descargar selección CSV", tabla.to_csv(index=False).encode("utf-8-sig"),
                        file_name=f"revision_casillas_{partido}_2024.csv", mime="text/csv")
     indices = evento.selection.rows
     if indices and 0 <= indices[0] < len(vista):
-        _mostrar_ficha_casilla(vista.iloc[indices[0]], base)
+        fila = vista.iloc[indices[0]]
+        elegido = (str(fila.ID_SECCION), str(fila.CASILLA_ETIQUETA))
+        if elegido != st.session_state.get("dashboard_accion_ultimo_click_tabla"):
+            st.session_state["dashboard_accion_ultimo_click_tabla"] = elegido
+            st.session_state["dashboard_accion_seleccionada"] = elegido
+            st.rerun()
+    if seleccion:
+        fila = vista.loc[vista.ID_SECCION.eq(seleccion[0])
+                         & vista.CASILLA_ETIQUETA.eq(seleccion[1])].iloc[0]
+        _mostrar_ficha_casilla(fila, base)
     st.caption("«Faltante ≤ abstención» es una comparación aritmética, no votos disponibles. "
                "El apoyo mínimo compara tres boletas federales de 2024 y no mide fidelidad individual.")
 
@@ -532,7 +656,7 @@ def mostrar_dashboard_casillas(estado: int, root: Path) -> None:
     if pregunta == preguntas[0]:
         _patron(base, puntos)
     elif pregunta == preguntas[1]:
-        _perfil(base)
+        _perfil(base, partido)
     elif pregunta == preguntas[2]:
         _historia(root, partido)
     else:
