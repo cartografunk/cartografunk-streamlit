@@ -116,8 +116,8 @@
       "sha256": "627805d9194f30a63011660351bb69a256c310050326cf33849dbe7b8f4beb00"
     },
     "electoral/dashboard_app.py": {
-      "bytes": 987,
-      "sha256": "2dd9b71fe3590870f9e4d597648ed9a3e77a9b1638de0303e595ab21a174db34"
+      "bytes": 1063,
+      "sha256": "868aec6fbdb261848ce623dd5cbdac4b548ccbaaf6e1ebc8b158e25250323858"
     },
     "electoral/dashboard_casillas.py": {
       "bytes": 25174,

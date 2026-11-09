@@ -1,14 +1,18 @@
 """Entrada directa para presentar las cuatro preguntas del piloto Querétaro."""
 
+import sys
 from pathlib import Path
 
 import streamlit as st
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from electoral.boletas_tab import mostrar_explorador_boletas
 from electoral.dashboard_casillas import mostrar_dashboard_casillas
 
 
-ROOT = Path(__file__).resolve().parents[1]
 st.set_page_config(page_title="Cartografunk · decisiones de campaña", layout="wide",
                    initial_sidebar_state="collapsed")
 st.html("""
