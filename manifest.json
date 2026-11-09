@@ -31,6 +31,10 @@
       "bytes": 12702,
       "sha256": "7af2518af2a17162c5b567d57ea75494febeb090ff69b71800d516c5d970df97"
     },
+    "data/electoral/ieeq_local/benchmark_ml_cpv_expandido_2024.json": {
+      "bytes": 17084,
+      "sha256": "8156d6bdf0623ee85f7d04f121b72e51618736476bf36ee0f41047e8cf365c91"
+    },
     "data/electoral/ieeq_local/benchmark_partidos_2024.json": {
       "bytes": 19777,
       "sha256": "e57a542dec27b5cb98fdfe1a4ee9a0737adfd1868bc79f3ba7a78ced0642bb85"
@@ -124,8 +128,8 @@
       "sha256": "967cb7463adb7b6922e40e694b6af16991415ef3cad67547156c0446ab4b32fe"
     },
     "electoral/dashboard_casillas.py": {
-      "bytes": 39033,
-      "sha256": "473b9d4ec302c6bb1cb8cdcfc44b5a65271c468e87e57268080a687d31a6d75b"
+      "bytes": 40971,
+      "sha256": "179d9a720c0f2f11f567ce77a4af8fe72a7a684048947be2b19bcb47466e6482"
     },
     "electoral/dashboard_portada.py": {
       "bytes": 4237,

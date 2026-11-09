@@ -422,12 +422,35 @@ def _historia(root: Path, partido: str) -> None:
     b.metric("Lista nominal cubierta", f"{universo['cobertura_lista_nominal_pct']:.1f} %")
     c.metric("Error Ridge · cuota del partido", f"{r['mae_pct']:.1f} pp")
     st.markdown(f"**{partido}: error medio en puntos de cuota de voto**")
-    comparacion = pd.DataFrame({"Método": ["Persistencia 2021", "Ridge"],
-                                "Error medio (pp)": [p["mae_pct"], r["mae_pct"]]})
+    filas_comparacion = [
+        {"Método": "Persistencia 2021", "Error medio (pp)": p["mae_pct"]},
+        {"Método": "Ridge sin CPV", "Error medio (pp)": r["mae_pct"]},
+    ]
+    ampliado_path = root / "data/electoral/ieeq_local/benchmark_ml_cpv_expandido_2024.json"
+    ampliado = json.loads(ampliado_path.read_text(encoding="utf-8")) if ampliado_path.exists() else None
+    if ampliado:
+        for nombre, etiqueta in (("15_tasas", "Árbol · 15 tasas CPV"),
+                                 ("27_tasas", "Árbol · 27 tasas CPV"),
+                                 ("todos_campos", "Árbol · 247 campos CPV")):
+            filas_comparacion.append({
+                "Método": etiqueta,
+                "Error medio (pp)": ampliado["modelos"][nombre]["por_partido"][partido]["mae_cuota_pp"],
+            })
+    comparacion = pd.DataFrame(filas_comparacion)
     st.bar_chart(comparacion, x="Método", y="Error medio (pp)", color="#48BBD3", height=220,
                  alt=f"Error retrospectivo de persistencia y Ridge para {partido}; menor es mejor")
-    st.caption("Ridge usa resultados de elecciones previas; el CPV se analiza por separado. "
-               "Menor error retrospectivo no equivale a una probabilidad de victoria futura.")
+    if ampliado:
+        errores = ampliado["modelos"]
+        st.caption("Nueva corrida: 15 tasas CPV, 27 tasas CPV y 247 campos (220 del ECEG "
+                   "más 27 tasas), entrenados y evaluados sobre las mismas secciones. "
+                   f"Error medio macro: {errores['15_tasas']['mae_cuota_macro_pp']:.2f}, "
+                   f"{errores['27_tasas']['mae_cuota_macro_pp']:.2f} y "
+                   f"{errores['todos_campos']['mae_cuota_macro_pp']:.2f} pp, respectivamente; "
+                   "Ridge sin CPV: 5.37 pp. Menor error retrospectivo no es probabilidad "
+                   "de victoria futura.")
+    else:
+        st.caption("Ridge usa resultados de elecciones previas; el CPV se analiza por separado. "
+                   "Menor error retrospectivo no equivale a una probabilidad de victoria futura.")
     st.caption("NO VERIFICADO: que el patrón se repita en 2027, en otras entidades o en casillas "
                "de secciones reconfiguradas. Este bloque compara secciones, no produce una "
                "probabilidad de victoria por casilla.")
@@ -436,6 +459,14 @@ def _historia(root: Path, partido: str) -> None:
             st.dataframe(comparacion, hide_index=True, width="stretch")
             st.write(f"Ridge: {r['lideres_detectados']} liderazgos detectados de "
                      f"{r['lideres_observados']} observados entre siete partidos atribuidos.")
+            if ampliado:
+                st.dataframe(pd.DataFrame([
+                    {"Variables CPV": datos["n_variables_cpv"],
+                     "Error macro cuota (pp)": datos["mae_cuota_macro_pp"],
+                     "Error macro margen (pp)": datos["mae_margen_macro_pp"],
+                     "Liderazgos detectados": datos["por_partido"][partido]["lideres_detectados"],
+                     "Liderazgos observados": datos["por_partido"][partido]["lideres_observados"]}
+                    for datos in ampliado["modelos"].values()]), hide_index=True, width="stretch")
             cpv_path = root / "data/electoral/ieeq_local/benchmark_ml_cpv_2024.json"
             if cpv_path.exists():
                 modelos_cpv = json.loads(cpv_path.read_text(encoding="utf-8"))["modelos"]
