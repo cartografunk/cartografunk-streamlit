@@ -438,7 +438,7 @@ def _historia(root: Path, partido: str) -> None:
             })
     comparacion = pd.DataFrame(filas_comparacion)
     st.bar_chart(comparacion, x="Método", y="Error medio (pp)", color="#48BBD3", height=220,
-                 alt=f"Error retrospectivo de persistencia y Ridge para {partido}; menor es mejor")
+                 alt=f"Error retrospectivo por método para {partido}; menor es mejor")
     if ampliado:
         errores = ampliado["modelos"]
         st.caption("Nueva corrida: 15 tasas CPV, 27 tasas CPV y 247 campos (220 del ECEG "
