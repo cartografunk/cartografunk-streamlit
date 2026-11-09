@@ -26,6 +26,11 @@ COLOR_CERCANA = [248, 170, 74, 220]
 COLOR_DEFENSA = [72, 187, 211, 220]
 COLOR_FORTALEZA = [102, 192, 138, 210]
 COLOR_BASE = [158, 155, 170, 180]
+COLOR_SECCION_AMPLIA = [29, 176, 127, 105]
+COLOR_SECCION_CORTA = [52, 177, 230, 105]
+COLOR_SECCION_CERCANA = [242, 158, 62, 120]
+COLOR_SECCION_LEJANA = [116, 137, 164, 60]
+COLOR_SECCION_SIN_DATO = [110, 130, 160, 55]
 CLASES_CERCANAS = ("perdida_competitiva", "ganada_ajustada", "empate")
 NOMBRES_CLASE = {
     "ganada_solida": "Ventaja amplia", "ganada_ajustada": "Ventaja estrecha",
@@ -96,21 +101,62 @@ def _capa_secciones(base: pd.DataFrame, geometrias: dict[str, dict]) -> dict:
             continue
         margen = fila.MARGEN_PP
         if pd.isna(margen):
-            color = [110, 130, 160, 55]
+            color = COLOR_SECCION_SIN_DATO
         elif margen >= 5:
-            color = [29, 176, 127, 105]
+            color = COLOR_SECCION_AMPLIA
         elif margen >= 0:
-            color = [52, 177, 230, 105]
+            color = COLOR_SECCION_CORTA
         elif margen >= -5:
-            color = [242, 158, 62, 120]
+            color = COLOR_SECCION_CERCANA
         else:
-            color = [116, 137, 164, 60]
+            color = COLOR_SECCION_LEJANA
         features.append({"type": "Feature", "geometry": geometria,
                          "properties": {"ID_SECCION": str(seccion), "COLOR": color,
                                         "CASILLAS": int(fila.CASILLAS),
                                         "SENAL": (f"Mediana del margen: {margen:+.1f} pp"
                                                   if pd.notna(margen) else "Sin margen")}})
     return {"type": "FeatureCollection", "features": features}
+
+
+def _mostrar_leyenda_mapa() -> None:
+    """Simbología visible para ambas capas, con los colores exactos del mapa."""
+    def item(color: list[int], etiqueta: str, forma: str) -> str:
+        r, g, b, alfa = color
+        return (f'<span class="leyenda-item"><i class="leyenda-{forma}" '
+                f'style="background:rgba({r},{g},{b},{alfa / 255:.3f})"></i>'
+                f'{etiqueta}</span>')
+
+    secciones = "".join((
+        item(COLOR_SECCION_AMPLIA, "Ventaja ≥5 pp", "seccion"),
+        item(COLOR_SECCION_CORTA, "Ventaja 0–5", "seccion"),
+        item(COLOR_SECCION_CERCANA, "Derrota 0–5", "seccion"),
+        item(COLOR_SECCION_LEJANA, "Derrota &gt;5 / s. d.", "seccion"),
+    ))
+    sedes = "".join((
+        item(COLOR_FORTALEZA, "Ventaja amplia", "sede"),
+        item(COLOR_DEFENSA, "Ventaja corta / empate", "sede"),
+        item(COLOR_CERCANA, "Derrota cercana", "sede"),
+        item(COLOR_BASE, "Otro", "sede"),
+    ))
+    st.html(f"""
+    <style>
+    .leyenda-mapa{{display:grid;gap:.55rem;padding:.75rem .9rem;margin:.25rem 0 .8rem;
+      background:#06263d;border:1px solid #155477;border-radius:12px;color:#d5edfa}}
+    .leyenda-fila{{display:flex;align-items:center;flex-wrap:wrap;gap:.35rem .8rem}}
+    .leyenda-titulo{{min-width:5.8rem;color:#8ccde8;font-size:.68rem;font-weight:700;
+      letter-spacing:.09em;text-transform:uppercase}}
+    .leyenda-item{{display:inline-flex;align-items:center;gap:.35rem;font-size:.75rem;
+      white-space:nowrap}}
+    .leyenda-item i{{display:inline-block;width:.8rem;height:.8rem;flex:none;
+      border:1px solid #a7d7ec}}
+    .leyenda-sede{{border-radius:50%}}
+    .leyenda-seccion{{border-radius:2px}}
+    </style>
+    <div class="leyenda-mapa" role="group" aria-label="Simbología del mapa electoral">
+      <div class="leyenda-fila"><span class="leyenda-titulo">Secciones</span>{secciones}</div>
+      <div class="leyenda-fila"><span class="leyenda-titulo">Sedes</span>{sedes}</div>
+    </div>
+    """)
 
 
 def _cabecera_pregunta(numero: int, pregunta: str, respuesta: str, metodo: str) -> None:
@@ -158,9 +204,7 @@ def _patron(base: pd.DataFrame, puntos: pd.DataFrame) -> None:
         st.markdown("**Mapa de sedes 2024**")
         capa = st.segmented_control("Vista del mapa", ["Sedes de casillas", "Sólo secciones"],
                                     default="Sedes de casillas", key="dashboard_capa_mapa")
-        st.caption("Los puntos muestran sedes 2024; una sede puede reunir varias casillas B/C/E. "
-                   "Pulsa un punto o una sección para filtrar la tabla. El color de la sección "
-                   "resume la mediana del margen partidario por casilla; no es probabilidad futura.")
+        _mostrar_leyenda_mapa()
         if seccion_activa and st.button("Mostrar todas las secciones", key="dashboard_limpiar_seccion",
                                         icon=":material/zoom_out_map:"):
             st.session_state["dashboard_seccion_activa"] = None
