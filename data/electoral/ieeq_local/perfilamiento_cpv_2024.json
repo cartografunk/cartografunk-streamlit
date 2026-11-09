@@ -1,0 +1,114 @@
+{
+  "perfiles": {
+    "1": {
+      "secciones": 264,
+      "rasgos": [
+        {
+          "variable": "pct_internet",
+          "etiqueta": "Viviendas con Internet",
+          "direccion": "mayor",
+          "desviacion_estandarizada": 0.7463689838986685
+        },
+        {
+          "variable": "pct_pea",
+          "etiqueta": "Población económicamente activa (12+)",
+          "direccion": "mayor",
+          "desviacion_estandarizada": 0.6212198470381789
+        },
+        {
+          "variable": "pct_analfabeta",
+          "etiqueta": "Analfabetismo (15+)",
+          "direccion": "menor",
+          "desviacion_estandarizada": -0.5844012261990607
+        }
+      ]
+    },
+    "2": {
+      "secciones": 221,
+      "rasgos": [
+        {
+          "variable": "pct_posbasica",
+          "etiqueta": "Educación posbásica (18+)",
+          "direccion": "menor",
+          "desviacion_estandarizada": -0.7753369207449763
+        },
+        {
+          "variable": "pct_menores_18",
+          "etiqueta": "Menores de 18 años",
+          "direccion": "mayor",
+          "desviacion_estandarizada": 0.7121985701645059
+        },
+        {
+          "variable": "pct_internet",
+          "etiqueta": "Viviendas con Internet",
+          "direccion": "menor",
+          "desviacion_estandarizada": -0.6743317897130727
+        }
+      ]
+    },
+    "3": {
+      "secciones": 185,
+      "rasgos": [
+        {
+          "variable": "pct_60_mas",
+          "etiqueta": "Personas de 60 años o más",
+          "direccion": "mayor",
+          "desviacion_estandarizada": 1.2691277557198928
+        },
+        {
+          "variable": "pct_menores_18",
+          "etiqueta": "Menores de 18 años",
+          "direccion": "menor",
+          "desviacion_estandarizada": -1.2417196426089163
+        },
+        {
+          "variable": "pct_posbasica",
+          "etiqueta": "Educación posbásica (18+)",
+          "direccion": "mayor",
+          "desviacion_estandarizada": 1.0042163204970147
+        }
+      ]
+    },
+    "4": {
+      "secciones": 117,
+      "rasgos": [
+        {
+          "variable": "pct_analfabeta",
+          "etiqueta": "Analfabetismo (15+)",
+          "direccion": "mayor",
+          "desviacion_estandarizada": 1.8737262239195687
+        },
+        {
+          "variable": "pct_sin_drenaje",
+          "etiqueta": "Viviendas sin drenaje",
+          "direccion": "mayor",
+          "desviacion_estandarizada": 1.7290189762331893
+        },
+        {
+          "variable": "pct_internet",
+          "etiqueta": "Viviendas con Internet",
+          "direccion": "menor",
+          "desviacion_estandarizada": -1.3815601338350754
+        }
+      ]
+    }
+  },
+  "secciones_sin_tasas_cpv": 1,
+  "secciones_excluidas_por_cpv_incompleto": 1,
+  "min_tasas_requeridas": 12,
+  "n_perfiles": 4,
+  "semilla": 0,
+  "secciones_con_perfil": 787,
+  "nota": "K-means usa sólo 15 tasas CPV 2020; grupos descriptivos de secciones, no tipos de votante.",
+  "estabilidad": {
+    "silhouette_k_4_a_7": {
+      "4": 0.18256433392164206,
+      "5": 0.1672294594617861,
+      "6": 0.1786208828089018,
+      "7": 0.15368029895968427
+    },
+    "ari_k4_semilla_0_vs_1": 0.9861984878943423,
+    "ari_k4_semilla_0_vs_2": 0.9850152953378876,
+    "sklearn_version": "1.9.0"
+  }
+}

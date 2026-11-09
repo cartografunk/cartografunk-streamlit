@@ -1,0 +1,583 @@
+{
+  "protocolo_v1_2_sha256": "7c3bbdbdf038e079460fd1152418b0ee465b80654e24caeb8e883c66e9bcef5a",
+  "mapa_columnas": {
+    "2018": {
+      "MORENA_PT_ES": [
+        "MORENA",
+        "PT",
+        "ES"
+      ],
+      "MORENA_PT": [
+        "MORENA",
+        "PT"
+      ],
+      "MORENA_ES": [
+        "MORENA",
+        "ES"
+      ],
+      "PT_ES": [
+        "PT",
+        "ES"
+      ],
+      "PRI_PVEM": [
+        "PRI",
+        "PVEM"
+      ],
+      "C_COMUN_PAN_PRD_MC": [
+        "PAN",
+        "PRD",
+        "MC"
+      ],
+      "PAN_PRD": [
+        "PAN",
+        "PRD"
+      ],
+      "PAN_MC": [
+        "PAN",
+        "MC"
+      ],
+      "PRD_MC": [
+        "PRD",
+        "MC"
+      ],
+      "C_COMUN_PAN_PRD": [
+        "PAN",
+        "PRD"
+      ]
+    },
+    "2021": {
+      "PAN_QI": [
+        "PAN",
+        "QI"
+      ],
+      "PRI_PVEM": [
+        "PRI",
+        "PVEM"
+      ],
+      "PVEM_PT": [
+        "PVEM",
+        "PT"
+      ]
+    },
+    "2024": {
+      "PVEM-MORENA-PT": [
+        "PVEM",
+        "MORENA",
+        "PT"
+      ],
+      "PVEM-MORENA": [
+        "PVEM",
+        "MORENA"
+      ],
+      "PVEM-PT": [
+        "PVEM",
+        "PT"
+      ],
+      "MORENA-PT": [
+        "MORENA",
+        "PT"
+      ],
+      "PAN-PRI-PRD": [
+        "PAN",
+        "PRI",
+        "PRD"
+      ],
+      "PAN-PRI": [
+        "PAN",
+        "PRI"
+      ],
+      "PAN-PRD": [
+        "PAN",
+        "PRD"
+      ],
+      "PRI-PRD": [
+        "PRI",
+        "PRD"
+      ]
+    }
+  },
+  "universo": {
+    "total_secciones": 953,
+    "total_lista_nominal": 1899053,
+    "comparable": {
+      "secciones": 788,
+      "cobertura_secciones_pct": 82.68625393494229,
+      "lista_nominal": 1398846,
+      "cobertura_lista_nominal_pct": 73.66018747238755
+    },
+    "territorialmente_modificadas": {
+      "secciones": 165,
+      "cobertura_secciones_pct": 17.313746065057714,
+      "lista_nominal": 500207,
+      "cobertura_lista_nominal_pct": 26.339812527612448
+    },
+    "entrenamiento_cadena": 654,
+    "secciones_lideradas_por_partido_sin_serie": 1,
+    "sin_dato_en_siete_partidos": 0
+  },
+  "resultados": {
+    "persistencia": {
+      "cobertura_base": {
+        "secciones": 788,
+        "cobertura_secciones_pct": 82.68625393494229,
+        "lista_nominal": 1398846,
+        "cobertura_lista_nominal_pct": 73.66018747238755
+      },
+      "mae_pct_macro": 5.946609452742221,
+      "mae_margen_pp_macro": 12.16834552476661,
+      "sensibilidad_cadena_654": {
+        "cobertura": {
+          "secciones": 654,
+          "cobertura_secciones_pct": 68.62539349422875,
+          "lista_nominal": 1053423,
+          "cobertura_lista_nominal_pct": 55.470963685584344
+        },
+        "mae_pct_macro": 5.794350445378256
+      },
+      "sensibilidad_sin_cinco_secciones_judiciales": {
+        "cobertura": {
+          "secciones": 783,
+          "cobertura_secciones_pct": 82.16159496327387,
+          "lista_nominal": 1385165,
+          "cobertura_lista_nominal_pct": 72.9397757724508
+        },
+        "mae_pct_macro": 5.94828136230955
+      },
+      "por_partido": {
+        "PAN": {
+          "mae_pct": 9.673436896888871,
+          "mae_margen_pp": 18.350095416039572,
+          "intervalo_90_semianchura_pp": 30.073182047608,
+          "cobertura_empirica_intervalo_pct": 84.13705583756345,
+          "liderazgo_emitido": {
+            "secciones": 172,
+            "cobertura_secciones_pct": 18.048268625393494,
+            "lista_nominal": 285093,
+            "cobertura_lista_nominal_pct": 15.012377221699447
+          },
+          "abstencion_cruza_empate": 616,
+          "acierto_entre_emitidos_pct": 91.27906976744185,
+          "predice_lidera": 167,
+          "precision_predice_lidera_pct": 91.61676646706587,
+          "lideres_observados": 314,
+          "lideres_detectados": 153,
+          "recall_liderazgo_pct": 48.72611464968153,
+          "predice_no_lidera": 5
+        },
+        "PRI": {
+          "mae_pct": 8.106853195809562,
+          "mae_margen_pp": 11.994752897984059,
+          "intervalo_90_semianchura_pp": 32.18424411769743,
+          "cobertura_empirica_intervalo_pct": 95.30456852791879,
+          "liderazgo_emitido": {
+            "secciones": 365,
+            "cobertura_secciones_pct": 38.30010493179434,
+            "lista_nominal": 614596,
+            "cobertura_lista_nominal_pct": 32.363288439027244
+          },
+          "abstencion_cruza_empate": 423,
+          "acierto_entre_emitidos_pct": 99.45205479452055,
+          "predice_lidera": 3,
+          "precision_predice_lidera_pct": 33.33333333333333,
+          "lideres_observados": 10,
+          "lideres_detectados": 1,
+          "recall_liderazgo_pct": 10.0,
+          "predice_no_lidera": 362
+        },
+        "PRD": {
+          "mae_pct": 1.069118693653817,
+          "mae_margen_pp": 7.866101391042165,
+          "intervalo_90_semianchura_pp": 21.28395117863371,
+          "cobertura_empirica_intervalo_pct": 96.19289340101524,
+          "liderazgo_emitido": {
+            "secciones": 787,
+            "cobertura_secciones_pct": 82.5813221406086,
+            "lista_nominal": 1397407,
+            "cobertura_lista_nominal_pct": 73.58441286262153
+          },
+          "abstencion_cruza_empate": 1,
+          "acierto_entre_emitidos_pct": 100.0,
+          "predice_lidera": 0,
+          "precision_predice_lidera_pct": null,
+          "lideres_observados": 0,
+          "lideres_detectados": 0,
+          "recall_liderazgo_pct": null,
+          "predice_no_lidera": 787
+        },
+        "MC": {
+          "mae_pct": 4.484380593078251,
+          "mae_margen_pp": 9.68114147857476,
+          "intervalo_90_semianchura_pp": 20.917494176501698,
+          "cobertura_empirica_intervalo_pct": 92.38578680203045,
+          "liderazgo_emitido": {
+            "secciones": 785,
+            "cobertura_secciones_pct": 82.37145855194125,
+            "lista_nominal": 1392960,
+            "cobertura_lista_nominal_pct": 73.3502435161104
+          },
+          "abstencion_cruza_empate": 3,
+          "acierto_entre_emitidos_pct": 99.23566878980891,
+          "predice_lidera": 0,
+          "precision_predice_lidera_pct": null,
+          "lideres_observados": 6,
+          "lideres_detectados": 0,
+          "recall_liderazgo_pct": 0.0,
+          "predice_no_lidera": 785
+        },
+        "PVEM": {
+          "mae_pct": 4.832002771316537,
+          "mae_margen_pp": 9.433334981054275,
+          "intervalo_90_semianchura_pp": 22.338354628604634,
+          "cobertura_empirica_intervalo_pct": 92.38578680203045,
+          "liderazgo_emitido": {
+            "secciones": 753,
+            "cobertura_secciones_pct": 79.01364113326338,
+            "lista_nominal": 1337609,
+            "cobertura_lista_nominal_pct": 70.43558026026656
+          },
+          "abstencion_cruza_empate": 35,
+          "acierto_entre_emitidos_pct": 98.67197875166002,
+          "predice_lidera": 0,
+          "precision_predice_lidera_pct": null,
+          "lideres_observados": 21,
+          "lideres_detectados": 0,
+          "recall_liderazgo_pct": 0.0,
+          "predice_no_lidera": 753
+        },
+        "MORENA": {
+          "mae_pct": 10.604029393784398,
+          "mae_margen_pp": 19.788225399693566,
+          "intervalo_90_semianchura_pp": 26.08593296650494,
+          "cobertura_empirica_intervalo_pct": 73.60406091370558,
+          "liderazgo_emitido": {
+            "secciones": 260,
+            "cobertura_secciones_pct": 27.282266526757606,
+            "lista_nominal": 419967,
+            "cobertura_lista_nominal_pct": 22.114548672417254
+          },
+          "abstencion_cruza_empate": 528,
+          "acierto_entre_emitidos_pct": 83.46153846153847,
+          "predice_lidera": 3,
+          "precision_predice_lidera_pct": 100.0,
+          "lideres_observados": 436,
+          "lideres_detectados": 3,
+          "recall_liderazgo_pct": 0.6880733944954128,
+          "predice_no_lidera": 257
+        },
+        "PT": {
+          "mae_pct": 2.8564446246641104,
+          "mae_margen_pp": 8.064767108977877,
+          "intervalo_90_semianchura_pp": 21.36642411696997,
+          "cobertura_empirica_intervalo_pct": 95.17766497461929,
+          "liderazgo_emitido": {
+            "secciones": 786,
+            "cobertura_secciones_pct": 82.47639034627493,
+            "lista_nominal": 1397606,
+            "cobertura_lista_nominal_pct": 73.59489176973997
+          },
+          "abstencion_cruza_empate": 2,
+          "acierto_entre_emitidos_pct": 99.87277353689568,
+          "predice_lidera": 0,
+          "precision_predice_lidera_pct": null,
+          "lideres_observados": 1,
+          "lideres_detectados": 0,
+          "recall_liderazgo_pct": 0.0,
+          "predice_no_lidera": 786
+        }
+      }
+    },
+    "media_2021": {
+      "cobertura_base": {
+        "secciones": 788,
+        "cobertura_secciones_pct": 82.68625393494229,
+        "lista_nominal": 1398846,
+        "cobertura_lista_nominal_pct": 73.66018747238755
+      },
+      "mae_pct_macro": 6.79939098360481,
+      "mae_margen_pp_macro": 14.663720196527322,
+      "sensibilidad_cadena_654": {
+        "cobertura": {
+          "secciones": 654,
+          "cobertura_secciones_pct": 68.62539349422875,
+          "lista_nominal": 1053423,
+          "cobertura_lista_nominal_pct": 55.470963685584344
+        },
+        "mae_pct_macro": 6.658815604677699
+      },
+      "sensibilidad_sin_cinco_secciones_judiciales": {
+        "cobertura": {
+          "secciones": 783,
+          "cobertura_secciones_pct": 82.16159496327387,
+          "lista_nominal": 1385165,
+          "cobertura_lista_nominal_pct": 72.9397757724508
+        },
+        "mae_pct_macro": 6.794811520790151
+      },
+      "por_partido": {
+        "PAN": {
+          "mae_pct": 15.007629486169368,
+          "mae_margen_pp": 27.538074349820253
+        },
+        "PRI": {
+          "mae_pct": 7.995819633222821,
+          "mae_margen_pp": 11.756974930157305
+        },
+        "PRD": {
+          "mae_pct": 0.8150456710956231,
+          "mae_margen_pp": 8.038826027367815
+        },
+        "MC": {
+          "mae_pct": 4.500733227115082,
+          "mae_margen_pp": 10.179221850538807
+        },
+        "PVEM": {
+          "mae_pct": 3.8702062936976183,
+          "mae_margen_pp": 10.53316760010775
+        },
+        "MORENA": {
+          "mae_pct": 12.742813672513945,
+          "mae_margen_pp": 25.87692420884848
+        },
+        "PT": {
+          "mae_pct": 2.663488901419216,
+          "mae_margen_pp": 8.722852408850834
+        }
+      }
+    },
+    "swing_2018_2021": {
+      "cobertura_base": {
+        "secciones": 788,
+        "cobertura_secciones_pct": 82.68625393494229,
+        "lista_nominal": 1398846,
+        "cobertura_lista_nominal_pct": 73.66018747238755
+      },
+      "mae_pct_macro": 6.877177798458319,
+      "mae_margen_pp_macro": 17.671100387388716,
+      "sensibilidad_cadena_654": {
+        "cobertura": {
+          "secciones": 654,
+          "cobertura_secciones_pct": 68.62539349422875,
+          "lista_nominal": 1053423,
+          "cobertura_lista_nominal_pct": 55.470963685584344
+        },
+        "mae_pct_macro": 6.735190425291107
+      },
+      "sensibilidad_sin_cinco_secciones_judiciales": {
+        "cobertura": {
+          "secciones": 783,
+          "cobertura_secciones_pct": 82.16159496327387,
+          "lista_nominal": 1385165,
+          "cobertura_lista_nominal_pct": 72.9397757724508
+        },
+        "mae_pct_macro": 6.879765627276905
+      },
+      "por_partido": {
+        "PAN": {
+          "mae_pct": 19.39137515413083,
+          "mae_margen_pp": 26.06302160422629
+        },
+        "PRI": {
+          "mae_pct": 6.137683758274369,
+          "mae_margen_pp": 13.217432703397025
+        },
+        "PRD": {
+          "mae_pct": 1.5003308168410219,
+          "mae_margen_pp": 13.127151872087172
+        },
+        "MC": {
+          "mae_pct": 4.2733990162559525,
+          "mae_margen_pp": 15.553079564125264
+        },
+        "PVEM": {
+          "mae_pct": 4.369519725309933,
+          "mae_margen_pp": 14.427386205926432
+        },
+        "MORENA": {
+          "mae_pct": 8.934828330665699,
+          "mae_margen_pp": 26.822492863165248
+        },
+        "PT": {
+          "mae_pct": 3.5331077877304216,
+          "mae_margen_pp": 14.487137898793579
+        }
+      }
+    },
+    "ridge": {
+      "cobertura_base": {
+        "secciones": 788,
+        "cobertura_secciones_pct": 82.68625393494229,
+        "lista_nominal": 1398846,
+        "cobertura_lista_nominal_pct": 73.66018747238755
+      },
+      "mae_pct_macro": 5.382862281009366,
+      "mae_margen_pp_macro": 11.32001455675764,
+      "sensibilidad_cadena_654": {
+        "cobertura": {
+          "secciones": 654,
+          "cobertura_secciones_pct": 68.62539349422875,
+          "lista_nominal": 1053423,
+          "cobertura_lista_nominal_pct": 55.470963685584344
+        },
+        "mae_pct_macro": 5.241867980505219
+      },
+      "sensibilidad_sin_cinco_secciones_judiciales": {
+        "cobertura": {
+          "secciones": 783,
+          "cobertura_secciones_pct": 82.16159496327387,
+          "lista_nominal": 1385165,
+          "cobertura_lista_nominal_pct": 72.9397757724508
+        },
+        "mae_pct_macro": 5.386725381914521
+      },
+      "por_partido": {
+        "PAN": {
+          "mae_pct": 11.04320475786402,
+          "mae_margen_pp": 18.54414394441599,
+          "intervalo_90_semianchura_pp": 26.79409961873401,
+          "cobertura_empirica_intervalo_pct": 78.04568527918782,
+          "liderazgo_emitido": {
+            "secciones": 161,
+            "cobertura_secciones_pct": 16.89401888772298,
+            "lista_nominal": 226593,
+            "cobertura_lista_nominal_pct": 11.931894475825583
+          },
+          "abstencion_cruza_empate": 627,
+          "acierto_entre_emitidos_pct": 85.09316770186336,
+          "predice_lidera": 161,
+          "precision_predice_lidera_pct": 85.09316770186336,
+          "lideres_observados": 314,
+          "lideres_detectados": 137,
+          "recall_liderazgo_pct": 43.63057324840764,
+          "predice_no_lidera": 0
+        },
+        "PRI": {
+          "mae_pct": 6.814858236244309,
+          "mae_margen_pp": 10.09501622352144,
+          "intervalo_90_semianchura_pp": 28.26376890735409,
+          "cobertura_empirica_intervalo_pct": 96.7005076142132,
+          "liderazgo_emitido": {
+            "secciones": 474,
+            "cobertura_secciones_pct": 49.73767051416579,
+            "lista_nominal": 701608,
+            "cobertura_lista_nominal_pct": 36.945151083197786
+          },
+          "abstencion_cruza_empate": 314,
+          "acierto_entre_emitidos_pct": 99.15611814345992,
+          "predice_lidera": 0,
+          "precision_predice_lidera_pct": null,
+          "lideres_observados": 10,
+          "lideres_detectados": 0,
+          "recall_liderazgo_pct": 0.0,
+          "predice_no_lidera": 474
+        },
+        "PRD": {
+          "mae_pct": 0.8607717668159367,
+          "mae_margen_pp": 7.453429034454216,
+          "intervalo_90_semianchura_pp": 16.0054857295449,
+          "cobertura_empirica_intervalo_pct": 92.25888324873097,
+          "liderazgo_emitido": {
+            "secciones": 788,
+            "cobertura_secciones_pct": 82.68625393494229,
+            "lista_nominal": 1398846,
+            "cobertura_lista_nominal_pct": 73.66018747238755
+          },
+          "abstencion_cruza_empate": 0,
+          "acierto_entre_emitidos_pct": 100.0,
+          "predice_lidera": 0,
+          "precision_predice_lidera_pct": null,
+          "lideres_observados": 0,
+          "lideres_detectados": 0,
+          "recall_liderazgo_pct": null,
+          "predice_no_lidera": 788
+        },
+        "MC": {
+          "mae_pct": 4.306954232788194,
+          "mae_margen_pp": 9.000976187772782,
+          "intervalo_90_semianchura_pp": 16.56107456398051,
+          "cobertura_empirica_intervalo_pct": 88.07106598984772,
+          "liderazgo_emitido": {
+            "secciones": 788,
+            "cobertura_secciones_pct": 82.68625393494229,
+            "lista_nominal": 1398846,
+            "cobertura_lista_nominal_pct": 73.66018747238755
+          },
+          "abstencion_cruza_empate": 0,
+          "acierto_entre_emitidos_pct": 99.23857868020305,
+          "predice_lidera": 0,
+          "precision_predice_lidera_pct": null,
+          "lideres_observados": 6,
+          "lideres_detectados": 0,
+          "recall_liderazgo_pct": 0.0,
+          "predice_no_lidera": 788
+        },
+        "PVEM": {
+          "mae_pct": 3.9428580694939304,
+          "mae_margen_pp": 9.060675657891014,
+          "intervalo_90_semianchura_pp": 18.734245699579258,
+          "cobertura_empirica_intervalo_pct": 90.35532994923858,
+          "liderazgo_emitido": {
+            "secciones": 788,
+            "cobertura_secciones_pct": 82.68625393494229,
+            "lista_nominal": 1398846,
+            "cobertura_lista_nominal_pct": 73.66018747238755
+          },
+          "abstencion_cruza_empate": 0,
+          "acierto_entre_emitidos_pct": 97.33502538071066,
+          "predice_lidera": 0,
+          "precision_predice_lidera_pct": null,
+          "lideres_observados": 21,
+          "lideres_detectados": 0,
+          "recall_liderazgo_pct": 0.0,
+          "predice_no_lidera": 788
+        },
+        "MORENA": {
+          "mae_pct": 8.05438712860803,
+          "mae_margen_pp": 17.513574753762832,
+          "intervalo_90_semianchura_pp": 24.734909596667283,
+          "cobertura_empirica_intervalo_pct": 78.42639593908629,
+          "liderazgo_emitido": {
+            "secciones": 201,
+            "cobertura_secciones_pct": 21.091290661070303,
+            "lista_nominal": 279660,
+            "cobertura_lista_nominal_pct": 14.726287260018546
+          },
+          "abstencion_cruza_empate": 587,
+          "acierto_entre_emitidos_pct": 89.55223880597015,
+          "predice_lidera": 0,
+          "precision_predice_lidera_pct": null,
+          "lideres_observados": 436,
+          "lideres_detectados": 0,
+          "recall_liderazgo_pct": 0.0,
+          "predice_no_lidera": 201
+        },
+        "PT": {
+          "mae_pct": 2.6570017752511466,
+          "mae_margen_pp": 7.572286095485191,
+          "intervalo_90_semianchura_pp": 15.894415166752507,
+          "cobertura_empirica_intervalo_pct": 92.00507614213198,
+          "liderazgo_emitido": {
+            "secciones": 788,
+            "cobertura_secciones_pct": 82.68625393494229,
+            "lista_nominal": 1398846,
+            "cobertura_lista_nominal_pct": 73.66018747238755
+          },
+          "abstencion_cruza_empate": 0,
+          "acierto_entre_emitidos_pct": 99.8730964467005,
+          "predice_lidera": 0,
+          "precision_predice_lidera_pct": null,
+          "lideres_observados": 1,
+          "lideres_detectados": 0,
+          "recall_liderazgo_pct": 0.0,
+          "predice_no_lidera": 788
+        }
+      }
+    }
+  },
+  "advertencias": [
+    "Evaluación retrospectiva exploratoria, no pronóstico validado.",
+    "El reparto seccional fraccionario no asigna sobrantes enteros a secciones.",
+    "Liderazgo evaluado entre siete partidos con serie completa, no victoria de candidatura.",
+    "Los residuos 2018→2021 pueden no calibrar 2021→2024."
+  ],
+  "estado": "calculado"
+}
