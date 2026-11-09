@@ -160,7 +160,7 @@ def _mostrar_leyenda_mapa() -> None:
         item(COLOR_DEFENSA, "Ventaja estrecha", "sede"),
         item(COLOR_EMPATE, "Empate", "sede"),
         item(COLOR_CERCANA, "Pérdida cercana", "sede"),
-        item(COLOR_BASE, "Derrota lejana", "sede"),
+        item(COLOR_BASE, "Pérdida lejana", "sede"),
         item(COLOR_SIN_DATO, "Sin resultado", "sede"),
     ))
     st.html(f"""
