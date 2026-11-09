@@ -156,9 +156,11 @@ def _patron(base: pd.DataFrame, puntos: pd.DataFrame) -> None:
     elegido_mapa = None
     with izquierda:
         st.markdown("**Mapa de sedes 2024**")
-        st.caption("Selecciona una sección para ver sus sedes y casillas. El color resume la "
-                   "mediana del margen partidario por casilla: verde ≥5 pp; azul 0–5; "
-                   "naranja −5–0; gris menor. Ningún color es probabilidad futura.")
+        capa = st.segmented_control("Vista del mapa", ["Sedes de casillas", "Sólo secciones"],
+                                    default="Sedes de casillas", key="dashboard_capa_mapa")
+        st.caption("Los puntos muestran sedes 2024; una sede puede reunir varias casillas B/C/E. "
+                   "Pulsa un punto o una sección para filtrar la tabla. El color de la sección "
+                   "resume la mediana del margen partidario por casilla; no es probabilidad futura.")
         if seccion_activa and st.button("Mostrar todas las secciones", key="dashboard_limpiar_seccion",
                                         icon=":material/zoom_out_map:"):
             st.session_state["dashboard_seccion_activa"] = None
@@ -179,8 +181,9 @@ def _patron(base: pd.DataFrame, puntos: pd.DataFrame) -> None:
                     get_line_color=[80, 194, 226, 145],
                     line_width_min_pixels=1))
             sedes_visibles = (sedes.loc[sedes.ID_SECCION.eq(seccion_activa)]
-                              if seccion_activa else sedes.iloc[0:0]
-                              if secciones_mapa["features"] else sedes)
+                              if seccion_activa else sedes
+                              if capa == "Sedes de casillas" or not secciones_mapa["features"]
+                              else sedes.iloc[0:0])
             capa = pdk.Layer(
                 "ScatterplotLayer", id="sedes", data=sedes_visibles.to_dict("records"),
                 get_position="[LONGITUD, LATITUD]", get_radius=45,
@@ -209,7 +212,7 @@ def _patron(base: pd.DataFrame, puntos: pd.DataFrame) -> None:
                          initial_view_state=pdk.ViewState(latitude=lat, longitude=lon, zoom=zoom),
                          tooltip={"text": "Sección {ID_SECCION}\nCasillas {CASILLAS}\n{SENAL}"}),
                 height=420, on_select="rerun", selection_mode="single-object",
-                key=f"dashboard_mapa_{modo}_{seccion_activa}_{seleccion}",
+                key=f"dashboard_mapa_{modo}_{capa}_{seccion_activa}_{seleccion}",
                 alt="Sedes de casillas 2024 coloreadas por resultado cercano o ventaja estrecha")
             objetos = evento_mapa.selection.objects.get("sedes", [])
             if objetos:
