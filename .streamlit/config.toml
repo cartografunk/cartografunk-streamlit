@@ -1,0 +1,10 @@
+[theme]
+base = "dark"
+primaryColor = "#26baff"
+backgroundColor = "#031b2c"
+secondaryBackgroundColor = "#062b45"
+textColor = "#eaf5ff"
+linkColor = "#61d5ff"
+borderColor = "#115076"
+font = "Noto Sans"
+headingFont = "Noto Sans"

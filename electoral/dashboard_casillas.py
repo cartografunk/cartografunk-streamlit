@@ -9,6 +9,8 @@ import altair as alt
 import pandas as pd
 import pydeck as pdk
 import streamlit as st
+from shapely import wkb
+from shapely.geometry import mapping, shape
 
 from electoral.diagnostico_casillas import (
     costo_hipotetico, evaluar_partido, incorporar_apoyo_minimo, lista_revision,
@@ -72,6 +74,45 @@ def preparar_sedes(casillas: pd.DataFrame, puntos: pd.DataFrame) -> pd.DataFrame
     return pd.DataFrame(filas)
 
 
+@st.cache_data(max_entries=1)
+def _geometrias_seccion(path: Path) -> dict[str, dict]:
+    """Geometría 2024 simplificada para contexto visual, sólo Querétaro."""
+    if not path.exists():
+        return {}
+    tabla = pd.read_parquet(path, columns=["ID_SECCION", "ENTIDAD", "geometry"],
+                            filters=[("ENTIDAD", "=", 22)])
+    return {str(fila.ID_SECCION): mapping(wkb.loads(fila.geometry).simplify(
+        0.0005, preserve_topology=True)) for fila in tabla.itertuples()}
+
+
+def _capa_secciones(base: pd.DataFrame, geometrias: dict[str, dict]) -> dict:
+    """Color por mediana de margen partidario de las casillas de la sección."""
+    resumen = base.groupby("ID_SECCION").agg(
+        MARGEN_PP=("MARGEN_PP", "median"), CASILLAS=("CASILLA_ETIQUETA", "count"))
+    features = []
+    for seccion, fila in resumen.iterrows():
+        geometria = geometrias.get(str(seccion))
+        if geometria is None:
+            continue
+        margen = fila.MARGEN_PP
+        if pd.isna(margen):
+            color = [110, 130, 160, 55]
+        elif margen >= 5:
+            color = [29, 176, 127, 105]
+        elif margen >= 0:
+            color = [52, 177, 230, 105]
+        elif margen >= -5:
+            color = [242, 158, 62, 120]
+        else:
+            color = [116, 137, 164, 60]
+        features.append({"type": "Feature", "geometry": geometria,
+                         "properties": {"ID_SECCION": str(seccion), "COLOR": color,
+                                        "CASILLAS": int(fila.CASILLAS),
+                                        "SENAL": (f"Mediana del margen: {margen:+.1f} pp"
+                                                  if pd.notna(margen) else "Sin margen")}})
+    return {"type": "FeatureCollection", "features": features}
+
+
 def _cabecera_pregunta(numero: int, pregunta: str, respuesta: str, metodo: str) -> None:
     st.markdown(f"#### {numero:02d} · {pregunta}")
     st.write(respuesta)
@@ -96,6 +137,10 @@ def _patron(base: pd.DataFrame, puntos: pd.DataFrame) -> None:
     else:
         vista = base.copy()
     sedes = preparar_sedes(vista, puntos)
+    seccion_activa = st.session_state.get("dashboard_seccion_activa")
+    if seccion_activa and not vista.ID_SECCION.eq(seccion_activa).any():
+        seccion_activa = None
+        st.session_state["dashboard_seccion_activa"] = None
     seleccion = st.session_state.get("dashboard_casilla_seleccionada")
     punto_seleccionado = None
     if seleccion:
@@ -106,23 +151,43 @@ def _patron(base: pd.DataFrame, puntos: pd.DataFrame) -> None:
     a, b, c = st.columns(3)
     a.metric("Casillas en vista", f"{len(vista):,}")
     b.metric("Secciones en vista", f"{vista.ID_SECCION.nunique():,}")
-    c.metric("Sedes en mapa", f"{len(sedes):,}")
+    c.metric("Sedes con punto disponibles", f"{len(sedes):,}")
     izquierda, derecha = st.columns([1.35, 1], gap="medium")
     elegido_mapa = None
     with izquierda:
         st.markdown("**Mapa de sedes 2024**")
-        st.caption("Naranja: pérdida cercana · azul: ventaja estrecha o empate · verde: ventaja amplia. "
-                   "Una marca reúne las casillas del mismo sitio; el color no es probabilidad de victoria.")
+        st.caption("Selecciona una sección para ver sus sedes y casillas. El color resume la "
+                   "mediana del margen partidario por casilla: verde ≥5 pp; azul 0–5; "
+                   "naranja −5–0; gris menor. Ningún color es probabilidad futura.")
+        if seccion_activa and st.button("Mostrar todas las secciones", key="dashboard_limpiar_seccion",
+                                        icon=":material/zoom_out_map:"):
+            st.session_state["dashboard_seccion_activa"] = None
+            st.session_state["dashboard_casilla_seleccionada"] = None
+            st.rerun()
         if sedes.empty:
             st.info("No hay puntos de sede para este filtro; consulta la lista de casillas.")
         else:
+            capas = []
+            geometrias = _geometrias_seccion(
+                Path(__file__).resolve().parents[1] / "data/electoral/secciones_2024_geom.parquet")
+            secciones_mapa = _capa_secciones(vista, geometrias)
+            if secciones_mapa["features"]:
+                capas.append(pdk.Layer(
+                    "GeoJsonLayer", id="secciones", data=secciones_mapa,
+                    pickable=True, filled=True, stroked=True,
+                    get_fill_color="properties.COLOR",
+                    get_line_color=[80, 194, 226, 145],
+                    line_width_min_pixels=1))
+            sedes_visibles = (sedes.loc[sedes.ID_SECCION.eq(seccion_activa)]
+                              if seccion_activa else sedes.iloc[0:0]
+                              if secciones_mapa["features"] else sedes)
             capa = pdk.Layer(
-                "ScatterplotLayer", id="sedes", data=sedes.to_dict("records"),
-                get_position="[LONGITUD, LATITUD]", get_radius=65,
-                radius_min_pixels=5, radius_max_pixels=13,
+                "ScatterplotLayer", id="sedes", data=sedes_visibles.to_dict("records"),
+                get_position="[LONGITUD, LATITUD]", get_radius=45,
+                radius_min_pixels=3, radius_max_pixels=8,
                 get_fill_color="COLOR", get_line_color=[22, 20, 30, 255],
                 line_width_min_pixels=1, stroked=True, pickable=True)
-            capas = [capa]
+            capas.append(capa)
             if punto_seleccionado is not None:
                 capas.append(pdk.Layer(
                     "ScatterplotLayer", id="seleccion", pickable=False,
@@ -136,23 +201,38 @@ def _patron(base: pd.DataFrame, puntos: pd.DataFrame) -> None:
             lat = float(punto_seleccionado.LATITUD) if punto_seleccionado is not None else 20.64
             lon = float(punto_seleccionado.LONGITUD) if punto_seleccionado is not None else -100.31
             zoom = 13.5 if punto_seleccionado is not None else 9.2
+            if punto_seleccionado is None and seccion_activa in geometrias:
+                centro = shape(geometrias[seccion_activa]).centroid
+                lat, lon, zoom = centro.y, centro.x, 12.5
             evento_mapa = st.pydeck_chart(
-                pdk.Deck(layers=capas, map_style=None,
+                pdk.Deck(layers=capas, map_style=pdk.map_styles.CARTO_DARK,
                          initial_view_state=pdk.ViewState(latitude=lat, longitude=lon, zoom=zoom),
                          tooltip={"text": "Sección {ID_SECCION}\nCasillas {CASILLAS}\n{SENAL}"}),
                 height=420, on_select="rerun", selection_mode="single-object",
-                key=f"dashboard_mapa_{modo}_{seleccion}",
+                key=f"dashboard_mapa_{modo}_{seccion_activa}_{seleccion}",
                 alt="Sedes de casillas 2024 coloreadas por resultado cercano o ventaja estrecha")
             objetos = evento_mapa.selection.objects.get("sedes", [])
             if objetos:
                 elegido_mapa = (str(objetos[0]["ID_SECCION"]), str(objetos[0]["CASILLA_INICIAL"]))
             if elegido_mapa and elegido_mapa != st.session_state.get("dashboard_ultimo_click_mapa"):
                 st.session_state["dashboard_ultimo_click_mapa"] = elegido_mapa
+                st.session_state["dashboard_seccion_activa"] = elegido_mapa[0]
                 st.session_state["dashboard_casilla_seleccionada"] = elegido_mapa
                 st.rerun()
+            secciones_elegidas = evento_mapa.selection.objects.get("secciones", [])
+            if secciones_elegidas:
+                objeto = secciones_elegidas[0]
+                clave_seccion = str(objeto.get("properties", {}).get("ID_SECCION")
+                                    or objeto.get("ID_SECCION", ""))
+                if clave_seccion and clave_seccion != seccion_activa:
+                    st.session_state["dashboard_seccion_activa"] = clave_seccion
+                    st.session_state["dashboard_casilla_seleccionada"] = None
+                    st.rerun()
     with derecha:
-        st.markdown("**Casillas del filtro**")
-        tabla = vista[["ID_SECCION", "CASILLA_ETIQUETA", "CLASE", "MARGEN_PP",
+        st.markdown(f"**Casillas de {seccion_activa}**" if seccion_activa else "**Casillas del filtro**")
+        vista_tabla = (vista.loc[vista.ID_SECCION.eq(seccion_activa)]
+                       if seccion_activa else vista)
+        tabla = vista_tabla[["ID_SECCION", "CASILLA_ETIQUETA", "CLASE", "MARGEN_PP",
                        "VOTOS_PARA_LIDERAR"]].rename(columns={
             "ID_SECCION": "Sección", "CASILLA_ETIQUETA": "Casilla", "CLASE": "Resultado",
             "MARGEN_PP": "Margen (pp)", "VOTOS_PARA_LIDERAR": "Votos para liderar",
@@ -163,17 +243,18 @@ def _patron(base: pd.DataFrame, puntos: pd.DataFrame) -> None:
         evento_tabla = st.dataframe(
             tabla, hide_index=True, width="stretch", height=420,
             on_select="rerun", selection_mode="single-row",
-            key=f"dashboard_tabla_patron_{modo}",
+            key=f"dashboard_tabla_patron_{modo}_{seccion_activa}",
             column_config={"Sección": st.column_config.TextColumn(pinned=True),
                            "Margen (pp)": st.column_config.NumberColumn(format="%+.1f")},
             alt="Casillas filtradas; selecciona una para ver su sede y resultado")
         st.caption("Selecciona una fila o un punto para abrir la ficha de casilla.")
     indices = evento_tabla.selection.rows
-    if indices and 0 <= indices[0] < len(vista):
-        fila = vista.reset_index(drop=True).iloc[indices[0]]
+    if indices and 0 <= indices[0] < len(vista_tabla):
+        fila = vista_tabla.reset_index(drop=True).iloc[indices[0]]
         clave = (str(fila.ID_SECCION), str(fila.CASILLA_ETIQUETA))
         if clave != st.session_state.get("dashboard_ultimo_click_tabla"):
             st.session_state["dashboard_ultimo_click_tabla"] = clave
+            st.session_state["dashboard_seccion_activa"] = clave[0]
             st.session_state["dashboard_casilla_seleccionada"] = clave
             st.rerun()
     if seleccion:
@@ -397,20 +478,18 @@ def mostrar_dashboard_casillas(estado: int, root: Path) -> None:
         base["PERFIL_CPV"] = pd.NA
         base["RASGOS_CPV_SECCION"] = pd.NA
     puntos = _cargar_puntos(carpeta / "casillas_2024_puntos.parquet")
-    tabs = st.tabs(["1 · Dónde ganar", "2 · Por qué", "3 · Confianza", "4 · Esfuerzo"],
-                   default="1 · Dónde ganar", key="dashboard_preguntas", on_change="rerun")
-    with tabs[0]:
-        if tabs[0].open:
-            _patron(base, puntos)
-    with tabs[1]:
-        if tabs[1].open:
-            _perfil(base)
-    with tabs[2]:
-        if tabs[2].open:
-            _historia(root, partido)
-    with tabs[3]:
-        if tabs[3].open:
-            _accion(base, puntos, partido)
+    preguntas = ("1 · Dónde ganar", "2 · Por qué", "3 · Confianza", "4 · Esfuerzo")
+    st.session_state.setdefault("dashboard_pregunta", preguntas[0])
+    pregunta = st.segmented_control("Pregunta", preguntas, key="dashboard_pregunta",
+                                    width="stretch")
+    if pregunta == preguntas[0]:
+        _patron(base, puntos)
+    elif pregunta == preguntas[1]:
+        _perfil(base)
+    elif pregunta == preguntas[2]:
+        _historia(root, partido)
+    else:
+        _accion(base, puntos, partido)
     with st.expander("Fuentes y límites del diagnóstico", on_change="rerun") as limites:
         if limites.open:
             st.write("Votos: IEEQ 2024 por casilla. CPV: ECEG INEGI–INE 2020 por sección. "

@@ -11,6 +11,10 @@
       "bytes": 6,
       "sha256": "8dfda54ba2f66ab3a8ebab460f4338bbeea1fb1e0f85ce06fe3530aa3c64679b"
     },
+    ".streamlit/config.toml": {
+      "bytes": 235,
+      "sha256": "316d17274b3abc2129408bf098043b6d42e920ac8b2eea290ccf0135ab00e824"
+    },
     "data/electoral/diputaciones_2024_seccion.parquet": {
       "bytes": 92122,
       "sha256": "44f5031b7b2c6f7178d7ef1c0b5890c5491805edab51fd7a334fdfd6f2ce5778"
@@ -116,12 +120,16 @@
       "sha256": "627805d9194f30a63011660351bb69a256c310050326cf33849dbe7b8f4beb00"
     },
     "electoral/dashboard_app.py": {
-      "bytes": 1063,
-      "sha256": "868aec6fbdb261848ce623dd5cbdac4b548ccbaaf6e1ebc8b158e25250323858"
+      "bytes": 2339,
+      "sha256": "967cb7463adb7b6922e40e694b6af16991415ef3cad67547156c0446ab4b32fe"
     },
     "electoral/dashboard_casillas.py": {
-      "bytes": 25174,
-      "sha256": "7904c062bc991dcdb0ab155eeb04a9d7991190e3081d130d022c1b3b4c2774c3"
+      "bytes": 29711,
+      "sha256": "f9662611998c6f6224a2ef2df9a0c2cdfc31139b8c0a15306bcd3794c41d06be"
+    },
+    "electoral/dashboard_portada.py": {
+      "bytes": 4237,
+      "sha256": "e60291616dc67b238784a33032845356832d7a564f79aa31cccc2c9746f45375"
     },
     "electoral/datos.py": {
       "bytes": 3838,
